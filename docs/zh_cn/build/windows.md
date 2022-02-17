@@ -1,25 +1,29 @@
 - [Windows 下构建方式](#windows-下构建方式)
   - [源码安装](#源码安装)
-    - [安装构建编译工具链](#安装构建编译工具链)
+    - [安装构建和编译工具链](#安装构建和编译工具链)
     - [安装依赖包](#安装依赖包)
       - [安装 MMDeploy Converter 依赖](#安装-mmdeploy-converter-依赖)
       - [安装 MMDeploy SDK 依赖](#安装-mmdeploy-sdk-依赖)
       - [安装推理引擎](#安装推理引擎)
     - [编译 MMDeploy](#编译-mmdeploy)
       - [编译安装 Model Converter](#编译安装-model-converter)
+        - [编译自定义算子](#编译自定义算子)
+        - [安装 Model Converter](#安装-model-converter)
       - [编译安装 SDK](#编译安装-sdk)
         - [编译选项说明](#编译选项说明)
         - [编译样例](#编译样例)
     - [注意事项](#注意事项)
 # Windows 下构建方式
 
-目前，MMDeploy 在 Windows 平台下仅提供源码编译安装方式。将来，会提供预编译包方式。
+目前，MMDeploy 在 Windows 平台下仅提供源码编译安装方式。未来会提供预编译包方式。
 
 ## 源码安装
-
-### 安装构建编译工具链
-visual studio 2019
-
+下述安装方式，均是在 **Windows 10** 下进行
+### 安装构建和编译工具链
+1. 下载并安装 [Visual Studio 2019](https://visualstudio.microsoft.com) 。要勾选 "使用C++的桌面开发, "Windows 10 SDK <br>
+2. 把 cmake 路径加入到环境变量 PATH 中, "
+   C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
+3. 如果系统中配置了 NVIDIA 显卡，根据官网教程，下载并安装 cuda toolkit。<br>
 ### 安装依赖包
   
 #### 安装 MMDeploy Converter 依赖
@@ -33,32 +37,24 @@ visual studio 2019
 <tbody>
   <tr>
     <td>conda </td>
-    <td>强烈建议安装conda，或者miniconda。比如， <br>https://repo.anaconda.com/miniconda/Miniconda3-py37_4.11.0-Windows-x86_64.exe <br>安装完毕后，打开系统开始菜单，输入prompt，选择并打开 anaconda powershell prompt。 <br><b>下文中的安装命令均是在powershell中经过测试验证。</b> </td>
+    <td>强烈建议安装conda，或者miniconda。比如， <br>https://repo.anaconda.com/miniconda/Miniconda3-py37_4.11.0-Windows-x86_64.exe <br>安装完毕后，打开系统开始菜单，输入prompt，选择并打开 anaconda powershell prompt。 <br><b>下文中的安装命令均是在 anaconda powershell 中测试验证的。</b> </td>
   </tr>
   <tr>
-    <td>pytorch </td>
+    <td>pytorch <br>(>=1.8.0) </td>
     <td>
     参考<a href="https://pytorch.org/get-started/locally/">pytorch官网</a>，根据系统环境, 选择合适的预编译包进行安装。比如, <br>
-    1. pytorch1.8 + cuda111 环境 <br>
     <pre><code>
     pip install torch==1.8.1+cu111 torchvision==0.9.1+cu111 torchaudio==0.8.1 -f https://download.pytorch.org/whl/torch_stable.html
-    </code></pre>
-    1. pytorch1.8 + cpu 环境 <br>
-    <pre><code>
-    pip install torch==1.8.1+cpu torchvision==0.9.1+cpu torchaudio==0.8.1 -f https://download.pytorch.org/whl/torch_stable.html
     </code></pre>
     </td>
   </tr>
   <tr>
     <td>mmcv-full </td>
     <td>参考<a href="https://github.com/open-mmlab/mmcv">mmcv官网</a>，根据系统环境，选择预编译包进行安装。比如，<br>
-    1. pytorch1.8 + cu111 + mmcv1.4.0
     <pre><code>
-    pip install mmcv-full=={mmcv_version} -f https://download.openmmlab.com/mmcv/dist/cu111/torch1.8.0/index.html
-    </code></pre>
-    1. pytorch1.8 + cpu + mmcv1.4.0
-    <pre><code>
-    pip install mmcv-full==1.4.0 -f https://download.openmmlab.com/mmcv/dist/cpu/torch1.8.0/index.html
+    $env:cu_version="cu111"
+    $env:torch_version="torch1.8.0"
+    pip install mmcv-full -f https://download.openmmlab.com/mmcv/dist/$env:cu_version/$env:torch_version/index.html
     </code></pre>
     </td>
   </tr>
@@ -97,7 +93,7 @@ visual studio 2019
   <tr>
     <td>pplcv </td>
     <td>pplcv 是在x86和cuda平台下的高性能图像处理库。 <b>此依赖项为可选项，只有在cuda平台下，才需安装</b><br>
-    1. 下载 https://github.com/openppl-public/ppl.cv/archive/refs/tags/v0.6.2.zip
+    1. 下载 https://github.com/openppl-public/ppl.cv/archive/refs/tags/v0.6.2.zip <br>
     2. 解压后，进入文件夹 ppl.cv-0.6.2 <br>
     3. 执行编译安装命令 <br>
     <pre><code>
@@ -111,6 +107,7 @@ visual studio 2019
 
 
 #### 安装推理引擎
+目前，在 Windows 平台下，MMDeploy 支持 ONNXRuntime 和 TensorRT 两种推理引擎。其他推理引擎尚未进行验证，或者验证未通过。后续将陆续予以支持
 <table>
 <thead>
   <tr>
@@ -123,18 +120,21 @@ visual studio 2019
     <tr>
     <td>ONNXRuntime</td>
     <td>onnxruntime </td>
-    <td> </td>
+    <td>
+    1. 下载二进制包：https://github.com/microsoft/onnxruntime/releases/download/v1.8.0/onnxruntime-win-x64-1.8.0.zip <br>
+    2. 解压到目标路径。我们使用%onnxruntime_root_path% 代表此路径
+    </td>
   </tr>
   <tr>
     <td rowspan="2">TensorRT<br> </td>
     <td>TensorRT <br> </td>
     <td> 
     1. 从NVIDIA官网下载二进制包, 比如，<br>
-   https://developer.nvidia.com/compute/machine-learning/tensorrt/secure/8.2.1/zip/tensorrt-8.2.1.8.windows10.x86_64.cuda-11.4.cudnn8.2.zip <br>
-    1. 解压二进制包 <br>
-    2. 安装 tensorrt 的 python package <br>
+   https://developer.nvidia.com/compute/machine-learning/tensorrt/secure/8.2.3.0/zip/TensorRT-8.2.3.0.Windows10.x86_64.cuda-11.4.cudnn8.2.zip <br>
+    1. 解压二进制包到目标路径。我们使用%tensorrt_root_path% 代表此路径 <br>
+    2. 安装 tensorrt 的 python package<br>
    <pre><code>
-   pip install 
+   pip install %tensorrt_root_path%/python/tensorrt-8.2.3.0-cp37-none-win_amd64.whl
    </code></pre>
    </td>
   </tr>
@@ -143,7 +143,7 @@ visual studio 2019
     <td>
     1. 从NVIDIA官网下载二进制包, 比如, <br>
    https://developer.nvidia.com/compute/machine-learning/cudnn/secure/8.2.1.32/11.3_06072021/cudnn-11.3-windows-x64-v8.2.1.32.zip <br>
-    2. 解压二进制包 <br>
+    1. 解压二进制包到目标路径。我们使用%cudnn_root_path% 代表此路径 <br>
    </td>
   </tr>
   <tr>
@@ -167,7 +167,33 @@ visual studio 2019
 ### 编译 MMDeploy
 
 #### 编译安装 Model Converter
+##### 编译自定义算子
+- **ONNXRuntime** 自定义算子
+```powershell
+mkdir build 
+cd build
+cmake .. -G "Visual Studio 16 2019" -A x64 -T v142 -DONNXRUNTIME_DIR=%onnxruntime_root_dir% ..
+cmake --build . -j --config Release
+```
 
+- **TensorRT** 自定义算子
+
+```powershell
+mkdir build 
+cd build
+cmake .. -G "Visual Studio 16 2019" -A x64 -T v142 -DTENSORRT_DIR=%tensorrt_root_dir% -DCUDNN_DIR=%cudnn_root_dir% ..
+cmake --build . -j --config Release
+```
+
+- **ncnn** 自定义算子
+  
+  TODO
+   
+##### 安装 Model Converter
+```powershell
+cd ${MMDEPLOY_DIR} # 切换到项目根目录
+pip install -e .
+```
 #### 编译安装 SDK
 ##### 编译选项说明
 <table>
@@ -210,11 +236,11 @@ visual studio 2019
     <td>N/A</td>
     <td> <b>默认情况下，SDK不设置任何后端</b>, 因为它与应用场景高度相关。 当选择多个后端时， 中间使用分号隔开。比如，<pre><code>-DMMDEPLOY_TARGET_BACKENDS="trt;ort;pplnn;ncnn;openvino"</code></pre>
     构建时，几乎每个后端，都需设置一些环境变量，用来查找依赖包。
-    1. trt: 表示 TensorRT, 需要设置 TENSORRT_DIR 和 CUDNN_DIR。类似， <pre><code>-DTENSORRT_DIR=%tensorrt_root_path%<br>-DCUDNN_DIR=%cudnn_root_path%</code></pre>
-    2. ort: 表示 ONNXRuntime，需要设置 ONNXRUNTIME_DIR。类似， <pre><code>-DONNXRUNTIME_DIR=%onnxruntime_root_path%</code></pre>
-    3. pplnn: 表示 PPL.NN，需要设置 pplnn_DIR。<pre><code>-Dpplnn_DIR=%pplnn_root_path%/pplnn-build/install/lib/cmake/ppl</code></pre>
-    4. ncnn。需要设置 ncnn_DIR。类似, <pre><code></code></pre>
-    5. openvino: 表示 OpenVINO，需要设置 InferenceEngine_DIR。类似, <pre><code></code></pre>
+    1. <b>trt</b>: 表示 TensorRT, 需要设置 TENSORRT_DIR 和 CUDNN_DIR。类似， <pre><code>-DTENSORRT_DIR=%tensorrt_root_path%<br>-DCUDNN_DIR=%cudnn_root_path%</code></pre>
+    2. <b>ort</b>: 表示 ONNXRuntime，需要设置 ONNXRUNTIME_DIR。类似， <pre><code>-DONNXRUNTIME_DIR=%onnxruntime_root_path%</code></pre>
+    3. <b>pplnn</b>: 表示 PPL.NN，需要设置 pplnn_DIR。<b>当前版本尚未验证</b> <br>
+    4. <b>ncnn</b>。需要设置 ncnn_DIR。<b>当前版本尚未验证</b> <br>
+    5. <b>openvino</b>: 表示 OpenVINO，需要设置 InferenceEngine_DIR。<b>当前版本尚未验证通过</b>
    </td>
   </tr>
   <tr>
