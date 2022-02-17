@@ -122,7 +122,7 @@
     <td>onnxruntime </td>
     <td>
     1. 下载二进制包：https://github.com/microsoft/onnxruntime/releases/download/v1.8.0/onnxruntime-win-x64-1.8.0.zip <br>
-    2. 解压到目标路径。我们使用%onnxruntime_root_path% 代表此路径
+    2. 解压到目标路径。我们使用%onnxruntime_dir% 代表此路径
     </td>
   </tr>
   <tr>
@@ -131,10 +131,10 @@
     <td> 
     1. 从NVIDIA官网下载二进制包, 比如，<br>
    https://developer.nvidia.com/compute/machine-learning/tensorrt/secure/8.2.3.0/zip/TensorRT-8.2.3.0.Windows10.x86_64.cuda-11.4.cudnn8.2.zip <br>
-    1. 解压二进制包到目标路径。我们使用%tensorrt_root_path% 代表此路径 <br>
+    1. 解压二进制包到目标路径。我们使用%tensorrt_dir% 代表此路径 <br>
     2. 安装 tensorrt 的 python package<br>
    <pre><code>
-   pip install %tensorrt_root_path%/python/tensorrt-8.2.3.0-cp37-none-win_amd64.whl
+   pip install %tensorrt_dir%/python/tensorrt-8.2.3.0-cp37-none-win_amd64.whl
    </code></pre>
    </td>
   </tr>
@@ -143,7 +143,7 @@
     <td>
     1. 从NVIDIA官网下载二进制包, 比如, <br>
    https://developer.nvidia.com/compute/machine-learning/cudnn/secure/8.2.1.32/11.3_06072021/cudnn-11.3-windows-x64-v8.2.1.32.zip <br>
-    1. 解压二进制包到目标路径。我们使用%cudnn_root_path% 代表此路径 <br>
+    1. 解压二进制包到目标路径。我们使用%cudnn_dir% 代表此路径 <br>
    </td>
   </tr>
   <tr>
@@ -172,7 +172,7 @@
 ```powershell
 mkdir build 
 cd build
-cmake .. -G "Visual Studio 16 2019" -A x64 -T v142 -DONNXRUNTIME_DIR=%onnxruntime_root_dir% ..
+cmake .. -G "Visual Studio 16 2019" -A x64 -T v142 -DONNXRUNTIME_DIR=%onnxruntime_dir% ..
 cmake --build . -j --config Release
 ```
 
@@ -181,7 +181,7 @@ cmake --build . -j --config Release
 ```powershell
 mkdir build 
 cd build
-cmake .. -G "Visual Studio 16 2019" -A x64 -T v142 -DTENSORRT_DIR=%tensorrt_root_dir% -DCUDNN_DIR=%cudnn_root_dir% ..
+cmake .. -G "Visual Studio 16 2019" -A x64 -T v142 -DTENSORRT_DIR=%tensorrt_dir% -DCUDNN_DIR=%cudnn_dir% ..
 cmake --build . -j --config Release
 ```
 
@@ -236,8 +236,8 @@ pip install -e .
     <td>N/A</td>
     <td> <b>默认情况下，SDK不设置任何后端</b>, 因为它与应用场景高度相关。 当选择多个后端时， 中间使用分号隔开。比如，<pre><code>-DMMDEPLOY_TARGET_BACKENDS="trt;ort;pplnn;ncnn;openvino"</code></pre>
     构建时，几乎每个后端，都需设置一些环境变量，用来查找依赖包。
-    1. <b>trt</b>: 表示 TensorRT, 需要设置 TENSORRT_DIR 和 CUDNN_DIR。类似， <pre><code>-DTENSORRT_DIR=%tensorrt_root_path%<br>-DCUDNN_DIR=%cudnn_root_path%</code></pre>
-    2. <b>ort</b>: 表示 ONNXRuntime，需要设置 ONNXRUNTIME_DIR。类似， <pre><code>-DONNXRUNTIME_DIR=%onnxruntime_root_path%</code></pre>
+    1. <b>trt</b>: 表示 TensorRT, 需要设置 TENSORRT_DIR 和 CUDNN_DIR。类似， <pre><code>-DTENSORRT_DIR=%tensorrt_dir%<br>-DCUDNN_DIR=%cudnn_dir%</code></pre>
+    2. <b>ort</b>: 表示 ONNXRuntime，需要设置 ONNXRUNTIME_DIR。类似， <pre><code>-DONNXRUNTIME_DIR=%onnxruntime_dir%</code></pre>
     3. <b>pplnn</b>: 表示 PPL.NN，需要设置 pplnn_DIR。<b>当前版本尚未验证</b> <br>
     4. <b>ncnn</b>。需要设置 ncnn_DIR。<b>当前版本尚未验证</b> <br>
     5. <b>openvino</b>: 表示 OpenVINO，需要设置 InferenceEngine_DIR。<b>当前版本尚未验证通过</b>
@@ -273,9 +273,9 @@ pip install -e .
       -DMMDEPLOY_TARGET_DEVICES="cpu" \
       -DMMDEPLOY_TARGET_BACKENDS="ort" \
       -DMMDEPLOY_CODEBASES="all" \
-      -DONNXRUNTIME_DIR=%path%to%onnxruntime% \
+      -DONNXRUNTIME_DIR=%onnxruntime_dir% \
       -Dspdlog_DIR=%spdlog_dir%/build/install/lib/cmake/spdlog \
-      -DOpenCV_DIR=%opencv_dir%
+      -DOpenCV_DIR=%opencv_dir%/build
   cmake --build . -- -j --config Release
   cmake --install . --config Release
   ```
@@ -290,11 +290,11 @@ pip install -e .
      -DMMDEPLOY_TARGET_DEVICES="cuda" \
      -DMMDEPLOY_TARGET_BACKENDS="trt" \
      -DMMDEPLOY_CODEBASES="all" \
-     -Dpplcv_DIR=/path/to/ppl.cv/cuda-build/install/lib/cmake/ppl \
+     -Dpplcv_DIR=%pplcv_dir%/pplcv-build/install/lib/cmake/ppl \
      -DTENSORRT_DIR=/path/to/tensorrt \
      -DCUDNN_DIR=/path/to/cudnn \
      -Dspdlog_DIR=%spdlog_dir%/build/install/lib/cmake/spdlog \
-     -DOpenCV_DIR=%opencv_dir%
+     -DOpenCV_DIR=%opencv_dir%/bin
    cmake --build . -- -j --config Release
    cmake --install . --config Release
   ```
