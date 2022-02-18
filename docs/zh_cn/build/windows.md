@@ -88,7 +88,10 @@
   </tr>
   <tr>
     <td>OpenCV </td>
-    <td>下载并安装 OpenCV 在 windows 下的预编译包: https://github.com/opencv/opencv/releases/download/4.5.5/opencv-4.5.5-vc14_vc15.exe</td>
+    <td>
+    1. 下载并安装 OpenCV 在 windows 下的预编译包: https://github.com/opencv/opencv/releases/download/4.5.5/opencv-4.5.5-vc14_vc15.exe
+    2. 把 OpenCV 库的路径加入到环境变量 PATH 中</td>
+
   </tr>
   <tr>
     <td>pplcv </td>
@@ -274,15 +277,15 @@ pip install -e .
   ```PowerShell
   mkdir build
   cd build
-  cmake .. -G "Visual Studio 16 2019" -A x64 -T v142 \
-      -DMMDEPLOY_BUILD_SDK=ON \
-      -DMMDEPLOY_TARGET_DEVICES="cpu" \
-      -DMMDEPLOY_TARGET_BACKENDS="ort" \
-      -DMMDEPLOY_CODEBASES="all" \
-      -DONNXRUNTIME_DIR={onnxruntime_dir} \
-      -Dspdlog_DIR={spdlog_dir}/build/install/lib/cmake/spdlog \
+  cmake .. -G "Visual Studio 16 2019" -A x64 -T v142 `
+      -DMMDEPLOY_BUILD_SDK=ON `
+      -DMMDEPLOY_TARGET_DEVICES="cpu" `
+      -DMMDEPLOY_TARGET_BACKENDS="ort" `
+      -DMMDEPLOY_CODEBASES="all" `
+      -DONNXRUNTIME_DIR={onnxruntime_dir} `
+      -Dspdlog_DIR={spdlog_dir}/build/install/lib/cmake/spdlog `
       -DOpenCV_DIR={opencv_dir}/build
-  cmake --build . -- -j --config Release
+  cmake --build . -j --config Release
   cmake --install . --config Release
   ```
 
@@ -291,17 +294,17 @@ pip install -e .
   ```PowerShell
    mkdir build
    cd build
-   cmake .. \
-     -DMMDEPLOY_BUILD_SDK=ON \
-     -DMMDEPLOY_TARGET_DEVICES="cuda" \
-     -DMMDEPLOY_TARGET_BACKENDS="trt" \
-     -DMMDEPLOY_CODEBASES="all" \
-     -Dpplcv_DIR={pplcv_dir}/pplcv-build/install/lib/cmake/ppl \
-     -DTENSORRT_DIR={tensorrt_dir} \
-     -DCUDNN_DIR={cudnn_dir} \
-     -Dspdlog_DIR={spdlog_dir}/build/install/lib/cmake/spdlog \
+   cmake .. -G "Visual Studio 16 2019" -A x64 -T v142 `
+     -DMMDEPLOY_BUILD_SDK=ON `
+     -DMMDEPLOY_TARGET_DEVICES="cuda" `
+     -DMMDEPLOY_TARGET_BACKENDS="trt" `
+     -DMMDEPLOY_CODEBASES="all" `
+     -Dpplcv_DIR={pplcv_dir}/pplcv-build/install/lib/cmake/ppl `
+     -DTENSORRT_DIR={tensorrt_dir} `
+     -DCUDNN_DIR={cudnn_dir} `
+     -Dspdlog_DIR={spdlog_dir}/build/install/lib/cmake/spdlog `
      -DOpenCV_DIR={opencv_dir}/build
-   cmake --build . -- -j --config Release
+   cmake --build . -j --config Release
    cmake --install . --config Release
   ```
 
