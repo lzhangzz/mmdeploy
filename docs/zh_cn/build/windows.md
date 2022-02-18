@@ -133,8 +133,10 @@
    https://developer.nvidia.com/compute/machine-learning/tensorrt/secure/8.2.3.0/zip/TensorRT-8.2.3.0.Windows10.x86_64.cuda-11.4.cudnn8.2.zip <br>
     1. 解压二进制包到目标路径。我们使用 <code>tensorrt_dir</code> 代表此路径 <br>
     2. 安装 tensorrt 的 python package<br>
+    3. 在 PATH 中增加 tensorrt libs 路径
    <pre><code>
    pip install {tensorrt_dir}/python/tensorrt-8.2.3.0-cp37-none-win_amd64.whl
+   $env:path = "{tensorrt_dir}/lib;" + $env:path
    </code></pre>
    </td>
   </tr>
@@ -144,6 +146,10 @@
     1. 从NVIDIA官网下载二进制包, 比如, <br>
    https://developer.nvidia.com/compute/machine-learning/cudnn/secure/8.2.1.32/11.3_06072021/cudnn-11.3-windows-x64-v8.2.1.32.zip <br>
     1. 解压二进制包到目标路径。我们使用 <code>cudnn_dir</code> 代表此路径 <br>
+    2. 在 PATH 中增加 cudnn libs 路径
+   <pre><code>
+   $env:path = "{cudnn_dir}/bin;" + $env:path
+   </code><pre>
    </td>
   </tr>
   <tr>
@@ -172,7 +178,7 @@
 ```powershell
 mkdir build 
 cd build
-cmake .. -G "Visual Studio 16 2019" -A x64 -T v142 -DONNXRUNTIME_DIR={onnxruntime_dir} ..
+cmake .. -G "Visual Studio 16 2019" -A x64 -T v142 -DMMDEPLOY_TARGET_BACKENDS="ort" -DONNXRUNTIME_DIR={onnxruntime_dir}
 cmake --build . -j --config Release
 ```
 
@@ -181,7 +187,7 @@ cmake --build . -j --config Release
 ```powershell
 mkdir build 
 cd build
-cmake .. -G "Visual Studio 16 2019" -A x64 -T v142 -DTENSORRT_DIR={tensorrt_dir} -DCUDNN_DIR={cudnn_dir} ..
+cmake .. -G "Visual Studio 16 2019" -A x64 -T v142 -DMMDEPLOY_TARGET_BACKENDS="trt" -DTENSORRT_DIR={tensorrt_dir} -DCUDNN_DIR={cudnn_dir}
 cmake --build . -j --config Release
 ```
 
