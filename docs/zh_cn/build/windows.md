@@ -12,6 +12,7 @@
       - [编译安装 SDK](#编译安装-sdk)
         - [编译选项说明](#编译选项说明)
         - [编译样例](#编译样例)
+        - [编译 SDK Demo](#编译-sdk-demo)
     - [注意事项](#注意事项)
 # Windows 下构建方式
 
@@ -307,6 +308,26 @@ pip install -e .
    cmake --build . -j --config Release
    cmake --install . --config Release
   ```
+- 其他
+
+  请参考上述两个示例，以及前述 SDK 的编译选项，在其他运行环境下编译 SDK
+
+##### 编译 SDK Demo
+
+```PowerShell
+cd install/example
+mkdir build
+cd build
+cmake .. -G "Visual Studio 16 2019" -A x64 -T v142 `
+  -DMMDeploy_DIR=${mmdeploy_dir}/build/install/lib/cmake/MMDeploy `
+  -Dspdlog_DIR=${spdlog_dir}/build/install/lib/cmake/spdlog `
+  -DOpenCV_DIR=${opencv_dir}/build
+cmake --build . -j --config Release
+cmake --install . --config Release
+
+$env:path = "${mmdeploy_dir}/build/install/bin/Release;" + $env:path
+
+```
 
 ### 注意事项
   1. Release / Debug 库不能混用。MMDeploy要是编译Debug版本，所有第三方依赖都要是Debug版本。
