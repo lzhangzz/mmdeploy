@@ -187,7 +187,7 @@
 mkdir build 
 cd build
 cmake .. -G "Visual Studio 16 2019" -A x64 -T v142 -DMMDEPLOY_TARGET_BACKENDS="ort" -DONNXRUNTIME_DIR={onnxruntime_dir}
-cmake --build . -j --config Release
+cmake --build . --config Release -- /maxcpucount:4
 ```
 
 - **TensorRT** 自定义算子
@@ -196,7 +196,7 @@ cmake --build . -j --config Release
 mkdir build 
 cd build
 cmake .. -G "Visual Studio 16 2019" -A x64 -T v142 -DMMDEPLOY_TARGET_BACKENDS="trt" -DTENSORRT_DIR={tensorrt_dir} -DCUDNN_DIR={cudnn_dir}
-cmake --build . -j --config Release
+cmake --build . --config Release -- /maxcpucount:4
 ```
 
 - **ncnn** 自定义算子
@@ -290,7 +290,7 @@ pip install -e .
       -DONNXRUNTIME_DIR={onnxruntime_dir} `
       -Dspdlog_DIR={spdlog_dir}/build/install/lib/cmake/spdlog `
       -DOpenCV_DIR={opencv_dir}/build
-  cmake --build . -j --config Release
+  cmake --build . --config Release -- /maxcpucount:4
   cmake --install . --config Release
   ```
 
@@ -309,7 +309,7 @@ pip install -e .
      -DCUDNN_DIR={cudnn_dir} `
      -Dspdlog_DIR={spdlog_dir}/build/install/lib/cmake/spdlog `
      -DOpenCV_DIR={opencv_dir}/build
-   cmake --build . -j --config Release
+   cmake --build . --config Release -- /maxcpucount:4
    cmake --install . --config Release
   ```
 - 其他
@@ -323,11 +323,10 @@ cd install/example
 mkdir build
 cd build
 cmake .. -G "Visual Studio 16 2019" -A x64 -T v142 `
-  -DMMDeploy_DIR=${mmdeploy_dir}/build/install/lib/cmake/MMDeploy `
-  -Dspdlog_DIR=${spdlog_dir}/build/install/lib/cmake/spdlog `
-  -DOpenCV_DIR=${opencv_dir}/build
-cmake --build . -j --config Release
-cmake --install . --config Release
+  -DMMDeploy_DIR={mmdeploy_dir}/build/install/lib/cmake/MMDeploy `
+  -Dspdlog_DIR={spdlog_dir}/build/install/lib/cmake/spdlog `
+  -DOpenCV_DIR={opencv_dir}/build
+cmake --build . --config Release -- /maxcpucount:4
 
 $env:path = "${mmdeploy_dir}/build/install/bin;" + $env:path
 
