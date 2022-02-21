@@ -14,6 +14,8 @@
         - [编译样例](#编译样例)
         - [编译 SDK Demo](#编译-sdk-demo)
     - [注意事项](#注意事项)
+
+---
 # Windows 下构建方式
 
 目前，MMDeploy 在 Windows 平台下仅提供源码编译安装方式。未来会提供预编译包方式。
@@ -90,7 +92,7 @@
   <tr>
     <td>OpenCV </td>
     <td>
-    1. 下载并安装 OpenCV 在 windows 下的预编译包: https://github.com/opencv/opencv/releases/download/4.5.5/opencv-4.5.5-vc14_vc15.exe
+    1. 下载并安装 OpenCV 在 windows 下的预编译包: https://github.com/opencv/opencv/releases/download/4.5.5/opencv-4.5.5-vc14_vc15.exe <br>
     2. 把 OpenCV 库的路径加入到环境变量 PATH 中</td>
 
   </tr>
