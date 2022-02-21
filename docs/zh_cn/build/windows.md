@@ -24,8 +24,7 @@
 下述安装方式，均是在 **Windows 10** 下进行
 ### 安装构建和编译工具链
 1. 下载并安装 [Visual Studio 2019](https://visualstudio.microsoft.com) 。安装时请勾选 "使用C++的桌面开发, "Windows 10 SDK <br>
-2. 把 cmake 路径加入到环境变量 PATH 中, "
-   C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
+2. 把 cmake 路径加入到环境变量 PATH 中, "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin" <br>
 3. 如果系统中配置了 NVIDIA 显卡，根据官网教程，下载并安装 cuda toolkit。<br>
 ### 安装依赖包
   
@@ -57,7 +56,7 @@
     <pre><code>
     $env:cu_version="cu111"
     $env:torch_version="torch1.8.0"
-    pip install mmcv-full -f https://download.openmmlab.com/mmcv/dist/$env:cu_version/$env:torch_version/index.html
+    pip install mmcv-full==1.4.0 -f https://download.openmmlab.com/mmcv/dist/$env:cu_version/$env:torch_version/index.html
     </code></pre>
     </td>
   </tr>
@@ -84,8 +83,7 @@
     mkdir build
     cd build
     cmake .. -G "Visual Studio 16 2019" -A x64 -T v142 -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=install -DCMAKE_BUILD_TYPE=Release
-    cmake --build . -j --config Release 
-    make --build . --target install -j --config Release
+    cmake --build . --target install -j --config Release
     </code></pre>
    </td>
   </tr>
@@ -98,11 +96,11 @@
   </tr>
   <tr>
     <td>pplcv </td>
-    <td>pplcv 是在x86和cuda平台下的高性能图像处理库。 <b>此依赖项为可选项，只有在cuda平台下，才需安装</b><br>
-    1. 下载 https://github.com/openppl-public/ppl.cv/archive/refs/tags/v0.6.2.zip <br>
-    2. 解压后，进入文件夹 ppl.cv-0.6.2 <br>
-    3. 执行编译安装命令 <br>
+    <td>pplcv 是在x86和cuda平台下的高性能图像处理库。 <b>此依赖项为可选项，只有在cuda平台下，才需安装。而且，必须使用v0.6.2</b><br>
     <pre><code>
+    git@github.com:openppl-public/ppl.cv.git
+    cd ppl.cv
+    git checkout tags/v0.6.2 -b v0.6.2
     ./build.bat -G "Visual Studio 16 2019" -T v142 -A x64 -DHPCC_USE_CUDA=ON -DHPCC_MSVC_MD=ON
     </code></pre>
    </td>
@@ -128,7 +126,11 @@
     <td>onnxruntime </td>
     <td>
     1. 下载二进制包：https://github.com/microsoft/onnxruntime/releases/download/v1.8.0/onnxruntime-win-x64-1.8.0.zip <br>
-    2. 解压到目标路径。我们使用 <code>onnxruntime_dir</code> 代表此路径
+    2. 解压到目标路径。我们使用 <code>onnxruntime_dir</code> 代表此路径 <br>
+    3. 在 PATH 中增加 onnxruntime libs 路径,
+    <pre><code>
+    $env:path = "{onnxruntime_dir}/lib;" + $env:path
+    </code></pre>
     </td>
   </tr>
   <tr>
@@ -327,7 +329,7 @@ cmake .. -G "Visual Studio 16 2019" -A x64 -T v142 `
 cmake --build . -j --config Release
 cmake --install . --config Release
 
-$env:path = "${mmdeploy_dir}/build/install/bin/Release;" + $env:path
+$env:path = "${mmdeploy_dir}/build/install/bin;" + $env:path
 
 ```
 
