@@ -29,7 +29,7 @@ struct _Receiver<Receiver>::type {
   size_t index_;
   operation_t<Receiver>* op_state_;
 
-  friend void tag_invoke(set_value_t, type&& self, Value value) noexcept {
+  friend void tag_invoke(set_value_t, type&& self, Value value) {
     self.op_state_->values_[self.index_] = std::move(value);
     if (0 == --self.op_state_->count_) {
       SetValue(std::move(self.op_state_->rcvr_), std::move(self.op_state_->values_));

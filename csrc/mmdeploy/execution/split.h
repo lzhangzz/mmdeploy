@@ -22,7 +22,7 @@ using receiver_t = typename _Receiver<SharedState>::type;
 
 struct _OperationBase {
   _OperationBase* next_;
-  void (*notify_)(_OperationBase*) noexcept;
+  void (*notify_)(_OperationBase*);
 };
 
 template <typename SharedState>
@@ -30,7 +30,7 @@ struct _Receiver<SharedState>::type {
   SharedState& shared_state_;
 
   template <typename... As>
-  friend void tag_invoke(set_value_t, type&& self, As&&... as) noexcept {
+  friend void tag_invoke(set_value_t, type&& self, As&&... as) {
     auto& state = self.shared_state_;
     state.data_.emplace((As &&) as...);
     state._Notify();
@@ -80,7 +80,7 @@ struct _Operation<Sender, Receiver>::type : _OperationBase {
         receiver_(std::move(receiver)),
         shared_state_(std::move(shared_state)) {}
 
-  static void _Notify(_OperationBase* self) noexcept {
+  static void _Notify(_OperationBase* self) {
     auto op = static_cast<type*>(self);
     std::apply([&](const auto&... args) { SetValue(std::move(op->receiver_), args...); },
                op->shared_state_->data_.value());

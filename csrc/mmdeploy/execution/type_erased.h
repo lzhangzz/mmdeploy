@@ -121,7 +121,7 @@ class _TypeErasedSenderAdapter {
 };
 
 template <typename SenderType>
-_TypeErasedSenderAdapter(SenderType &&)->_TypeErasedSenderAdapter<remove_cvref_t<SenderType>>;
+_TypeErasedSenderAdapter(SenderType&&) -> _TypeErasedSenderAdapter<remove_cvref_t<SenderType>>;
 
 namespace _expose {
 
@@ -199,7 +199,7 @@ template <typename... Ts>
 using TypeErasedSender = _TypeErasedSender<std::tuple<Ts...>>;
 
 template <typename Sender>
-_TypeErasedSender(Sender &&)->_TypeErasedSender<completion_signatures_of_t<Sender>>;
+_TypeErasedSender(Sender&&) -> _TypeErasedSender<completion_signatures_of_t<Sender>>;
 
 template <typename Sender, typename ValueTypes = completion_signatures_of_t<Sender>>
 struct _TypeErasedSenderImpl : _TypeErasedSender<ValueTypes>::Impl {
@@ -270,7 +270,7 @@ class _TypeErasedReceiver {
   explicit _TypeErasedReceiver(Receiver&&);
 
   template <typename... As>
-  friend void tag_invoke(set_value_t, _TypeErasedReceiver&& self, As&&... as) noexcept {
+  friend void tag_invoke(set_value_t, _TypeErasedReceiver&& self, As&&... as) {
     self.impl_->_SetValue(std::make_tuple((As &&) as...));
   }
 
@@ -281,9 +281,8 @@ class _TypeErasedReceiver {
 template <typename Receiver, typename ValueTypes>
 struct _TypeErasedReceiverImpl : _TypeErasedReceiver<ValueTypes>::Impl {
   void _SetValue(ValueTypes vals) override {
-    std::apply(
-        [&](auto&&... args) noexcept { SetValue(std::move(receiver_), (decltype(args)&&)args...); },
-        std::move(vals));
+    std::apply([&](auto&&... args) { SetValue(std::move(receiver_), (decltype(args)&&)args...); },
+               std::move(vals));
   }
   Receiver receiver_;
 

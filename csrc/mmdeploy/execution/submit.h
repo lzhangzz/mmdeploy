@@ -25,7 +25,7 @@ struct _Operation<Sender, Receiver>::type {
   struct _Receiver {
     type* op_state_;
     template <typename... As>
-    friend void tag_invoke(set_value_t, _Receiver&& self, As&&... as) noexcept {
+    friend void tag_invoke(set_value_t, _Receiver&& self, As&&... as) {
       std::unique_ptr<type> _{self.op_state_};
       return SetValue(std::move(self.op_state_->receiver_), (As &&) as...);
     }

@@ -25,7 +25,7 @@ template <typename Receiver, typename... Ts>
 struct _Operation<Receiver, Ts...>::type {
   std::tuple<Ts...> values_;
   Receiver receiver_;
-  friend void tag_invoke(start_t, type& op_state) noexcept {
+  friend void tag_invoke(start_t, type& op_state) {
     std::apply(
         [&](Ts&... ts) -> void { SetValue(std::move(op_state.receiver_), std::move(ts)...); },
         op_state.values_);

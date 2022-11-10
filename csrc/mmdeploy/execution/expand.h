@@ -16,7 +16,7 @@ struct _Receiver {
   struct type {
     Receiver receiver_;
     template <class Tuple>
-    friend void tag_invoke(set_value_t, type&& self, Tuple&& tup) noexcept {
+    friend void tag_invoke(set_value_t, type&& self, Tuple&& tup) {
       std::apply(
           [&](auto&&... args) {
             SetValue((Receiver &&) self.receiver_, (decltype(args)&&)args...);

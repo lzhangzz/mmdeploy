@@ -38,7 +38,7 @@ template <typename Scheduler, typename CvrefSender, typename Receiver>
 struct _Receiver2<Scheduler, CvrefSender, Receiver>::type {
   operation1_t<Scheduler, CvrefSender, Receiver>* op_state_;
 
-  friend void tag_invoke(set_value_t, type&& self) noexcept {
+  friend void tag_invoke(set_value_t, type&& self) {
     std::apply(
         [&](auto&&... vals) {
           SetValue(std::move(self.op_state_->receiver_), std::move(vals)...);  //
@@ -54,7 +54,7 @@ struct _Receiver1<Scheduler, CvrefSender, Receiver>::type {
   operation1_t<Scheduler, CvrefSender, Receiver>* op_state_;
 
   template <typename... As>
-  friend void tag_invoke(set_value_t, type&& self, As&&... as) noexcept {
+  friend void tag_invoke(set_value_t, type&& self, As&&... as) {
     self.op_state_->data_.emplace((As &&) as...);
     auto sender = Schedule(self.op_state_->scheduler_);
     auto& op_state2 = self.op_state_->op_state2_.emplace(
@@ -85,7 +85,7 @@ struct _Operation1<Scheduler, CvrefSender, Receiver>::type {
   type& operator=(const type&) = delete;
   type& operator=(type&&) noexcept = delete;
 
-  friend void tag_invoke(start_t, type& op_state) noexcept { Start(op_state.op_state1_); }
+  friend void tag_invoke(start_t, type& op_state) { Start(op_state.op_state1_); }
 };
 
 template <typename Scheduler, typename Sender>

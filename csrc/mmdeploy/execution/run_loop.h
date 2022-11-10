@@ -32,7 +32,7 @@ using operation_t = typename _Operation<remove_cvref_t<Receiver>>::type;
 
 template <typename Receiver>
 struct _Operation<Receiver>::type final : _Task {
-  friend void tag_invoke(start_t, type& op_state) noexcept { op_state._Start(); }
+  friend void tag_invoke(start_t, type& op_state) { op_state._Start(); }
 
   void _Execute() noexcept override { SetValue(std::move(receiver_)); }
   void _Start() noexcept;

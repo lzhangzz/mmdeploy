@@ -28,7 +28,7 @@ struct _Receiver<SharedState>::type {
   std::shared_ptr<SharedState> shared_state_;
 
   template <typename... As>
-  friend void tag_invoke(set_value_t, type&& self, As&&... as) noexcept {
+  friend void tag_invoke(set_value_t, type&& self, As&&... as) {
     assert(self.shared_state_);
     self.shared_state_->data_.emplace((As &&) as...);
     self.shared_state_->_Notify();

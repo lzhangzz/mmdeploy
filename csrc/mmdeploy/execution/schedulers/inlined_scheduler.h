@@ -19,7 +19,7 @@ using operation_t = typename _Operation<remove_cvref_t<Receiver>>::type;
 template <typename Receiver>
 struct _Operation<Receiver>::type {
   Receiver receiver_;
-  friend void tag_invoke(start_t, type& op) noexcept { SetValue(std::move(op.receiver_)); }
+  friend void tag_invoke(start_t, type& op) { SetValue(std::move(op.receiver_)); }
 };
 
 struct _Sender {
@@ -50,7 +50,7 @@ template <typename Sender>
 struct _Receiver<Sender>::type {
   std::optional<completion_signatures_of_t<Sender>>* data_;
   template <typename... As>
-  friend void tag_invoke(set_value_t, type&& r, As&&... as) noexcept {
+  friend void tag_invoke(set_value_t, type&& r, As&&... as) {
     r.data_->emplace((As &&) as...);
   }
 };

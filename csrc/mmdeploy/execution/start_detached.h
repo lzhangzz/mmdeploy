@@ -14,7 +14,7 @@ namespace __start_detached {
 
 struct _Receiver {
   template <typename... As>
-  friend void tag_invoke(set_value_t, _Receiver&&, As&&...) noexcept {}
+  friend void tag_invoke(set_value_t, _Receiver&&, As&&...) {}
 };
 
 struct start_detached_t {

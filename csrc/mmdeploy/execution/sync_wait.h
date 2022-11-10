@@ -32,7 +32,7 @@ struct _Receiver<Sender>::type {
   RunLoop* loop_;
 
   template <typename... As>
-  friend void tag_invoke(set_value_t, type&& receiver, As&&... as) noexcept {
+  friend void tag_invoke(set_value_t, type&& receiver, As&&... as) {
     receiver.state_->data_.emplace((As &&) as...);
     receiver.loop_->_Finish();
   }

@@ -26,7 +26,7 @@ struct _Receiver<Receiver, Func>::type {
   Func func_;
 
   template <typename... Args>
-  friend void tag_invoke(set_value_t, type&& self, Args&&... args) noexcept {
+  friend void tag_invoke(set_value_t, type&& self, Args&&... args) {
     if constexpr (std::is_void_v<std::invoke_result_t<Func&&, Args...>>) {
       std::invoke(std::move(self.func_), (Args &&) args...);
       SetValue(std::move(self.receiver_));
@@ -45,8 +45,8 @@ using sender_t = typename _Sender<remove_cvref_t<Sender>, remove_cvref_t<Func>>:
 
 template <typename Sender, typename Func>
 struct _Sender<Sender, Func>::type {
-  using _ret_type = decltype(
-      std::apply(std::declval<Func>(), std::declval<completion_signatures_of_t<Sender>>()));
+  using _ret_type = decltype(std::apply(std::declval<Func>(),
+                                        std::declval<completion_signatures_of_t<Sender>>()));
 
   using value_types =
       std::conditional_t<std::is_void_v<_ret_type>, std::tuple<>, std::tuple<_ret_type>>;

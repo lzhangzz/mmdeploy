@@ -34,7 +34,7 @@ struct _Receiver<CvrefReceiver, Index, Senders...>::type {
   Operation<CvrefReceiver, Senders...>* op_state_;
 
   template <typename... As>
-  friend void tag_invoke(set_value_t, type&& self, As&&... as) noexcept {
+  friend void tag_invoke(set_value_t, type&& self, As&&... as) {
     std::get<Index>(self.op_state_->vals_).emplace((As &&) as...);
     self.op_state_->_Arrive();
   }
@@ -93,7 +93,7 @@ struct _Operation<CvrefReceiver, Senders...>::type {
       : child_states_{_ConnectChildren(this, _Indices{}, (_Senders &&) senders...)},
         receiver_(std::move(receiver)) {}
 
-  friend void tag_invoke(start_t, type& self) noexcept {
+  friend void tag_invoke(start_t, type& self) {
     std::apply([](auto&&... child_ops) noexcept -> void { (Start(child_ops), ...); },
                self.child_states_);
   }

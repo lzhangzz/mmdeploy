@@ -31,7 +31,7 @@ template <typename Scheduler, typename Sender, typename Receiver>
 struct _ReceiverRef<Scheduler, Sender, Receiver>::type {
   operation_t<Scheduler, Sender, Receiver>* op_state_;
   template <typename... Args>
-  friend void tag_invoke(set_value_t, type&& self, Args&&... args) noexcept {
+  friend void tag_invoke(set_value_t, type&& self, Args&&... args) {
     SetValue((Receiver &&) self.op_state_->receiver_, ((Args &&) args)...);
   }
 };
@@ -48,7 +48,7 @@ struct _Receiver<Scheduler, Sender, Receiver>::type {
   operation_t<Scheduler, Sender, Receiver>* op_state_;
   using _receiver_ref_t = receiver_ref_t<Scheduler, Sender, Receiver>;
 
-  friend void tag_invoke(set_value_t, type&& self) noexcept {
+  friend void tag_invoke(set_value_t, type&& self) {
     auto op_state = self.op_state_;
     Start(op_state->data_.template emplace<1>(
         Connect((Sender &&) op_state->sender_, _receiver_ref_t{op_state})));
