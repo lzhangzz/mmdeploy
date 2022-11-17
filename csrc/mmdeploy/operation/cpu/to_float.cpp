@@ -2,7 +2,7 @@
 
 #include <map>
 
-#include "mmdeploy/operation/vision.h"
+#include "mmdeploy/operation/operations.h"
 #include "mmdeploy/utils/opencv/opencv_utils.h"
 
 namespace mmdeploy::operation::cpu {

@@ -3,10 +3,9 @@
 #include "mmdeploy/archive/value_archive.h"
 #include "mmdeploy/core/registry.h"
 #include "mmdeploy/core/tensor.h"
+#include "mmdeploy/core/transform.h"
 #include "mmdeploy/core/utils/formatter.h"
-#include "mmdeploy/operation/managed.h"
-#include "mmdeploy/operation/vision.h"
-#include "mmdeploy/preprocess/transform/transform.h"
+#include "mmdeploy/operation/operations.h"
 
 using namespace std;
 

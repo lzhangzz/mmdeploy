@@ -40,6 +40,8 @@ set(SRCS
         utils/device_utils.cpp
         utils/formatter.cpp
         utils/stacktrace.cpp
+        operation.cpp
+        transform.cpp
         )
 
 mmdeploy_add_library(${PROJECT_NAME} ${SRCS})

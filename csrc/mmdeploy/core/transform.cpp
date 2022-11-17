@@ -1,6 +1,6 @@
 // Copyright (c) OpenMMLab. All rights reserved.
 
-#include "mmdeploy/preprocess/transform/transform.h"
+#include "transform.h"
 
 #include "mmdeploy/core/registry.h"
 

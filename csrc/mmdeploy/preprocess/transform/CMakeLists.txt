@@ -14,7 +14,6 @@ set(SRCS
         normalize.cpp
         pad.cpp
         resize.cpp
-        transform.cpp
         tracer.cpp
         lift.cpp)
 mmdeploy_add_module(${PROJECT_NAME} LIBRARY "${SRCS}")

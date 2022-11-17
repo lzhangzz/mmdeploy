@@ -3,7 +3,7 @@
 #include <map>
 
 #include "mmdeploy/core/utils/formatter.h"
-#include "mmdeploy/operation/vision.h"
+#include "mmdeploy/operation/operations.h"
 #include "ppl/cv/cuda/copymakeborder.h"
 
 using namespace ppl::cv::cuda;

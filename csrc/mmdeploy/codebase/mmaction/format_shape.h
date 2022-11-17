@@ -6,9 +6,9 @@
 #include <array>
 #include <vector>
 
+#include "mmdeploy/core/operation.h"
 #include "mmdeploy/core/tensor.h"
-#include "mmdeploy/operation/managed.h"
-#include "mmdeploy/preprocess/transform/transform.h"
+#include "mmdeploy/core/transform.h"
 
 namespace mmdeploy::mmaction {
 

@@ -3,9 +3,9 @@
 #include "mmdeploy/codebase/mmseg/mmseg.h"
 #include "mmdeploy/core/logger.h"
 #include "mmdeploy/core/tensor.h"
+#include "mmdeploy/core/transform.h"
 #include "mmdeploy/core/utils/device_utils.h"
 #include "mmdeploy/core/utils/formatter.h"
-#include "mmdeploy/preprocess/transform/transform.h"
 #include "opencv_utils.h"
 
 namespace mmdeploy::mmseg {

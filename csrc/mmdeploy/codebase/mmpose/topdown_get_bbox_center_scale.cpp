@@ -5,8 +5,8 @@
 #include "mmdeploy/archive/value_archive.h"
 #include "mmdeploy/core/registry.h"
 #include "mmdeploy/core/tensor.h"
+#include "mmdeploy/core/transform.h"
 #include "mmdeploy/core/utils/formatter.h"
-#include "mmdeploy/preprocess/transform/transform.h"
 
 using namespace std;
 

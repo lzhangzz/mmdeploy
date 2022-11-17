@@ -4,8 +4,8 @@
 #define MMDEPLOY_TEST_TRANSFORM_UTILS_H
 
 #include "mmdeploy/core/tensor.h"
+#include "mmdeploy/core/transform.h"
 #include "mmdeploy/core/value.h"
-#include "mmdeploy/preprocess/transform/transform.h"
 
 namespace mmdeploy::test {
 

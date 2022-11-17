@@ -1,8 +1,8 @@
 // Copyright (c) OpenMMLab. All rights reserved.
 #include "catch.hpp"
 #include "mmdeploy/core/tensor.h"
+#include "mmdeploy/core/transform.h"
 #include "mmdeploy/core/utils/device_utils.h"
-#include "mmdeploy/preprocess/transform/transform.h"
 #include "opencv2/imgcodecs/imgcodecs.hpp"
 #include "opencv_utils.h"
 #include "test_resource.h"
@@ -58,7 +58,6 @@ TEST_CASE("transform DefaultFormatBundle", "[bundle]") {
   auto img_path = img_list.front();
   cv::Mat bgr_mat = cv::imread(img_path, cv::IMREAD_COLOR);
   cv::Mat gray_mat = cv::imread(img_path, cv::IMREAD_GRAYSCALE);
-
 
   Value cfg{{"type", "DefaultFormatBundle"}, {"keys", {"img"}}};
   vector<cv::Mat> mats{bgr_mat, gray_mat};

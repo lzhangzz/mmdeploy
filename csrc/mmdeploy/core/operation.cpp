@@ -1,6 +1,6 @@
 // Copyright (c) OpenMMLab. All rights reserved.
 
-#include "mmdeploy/operation/operation.h"
+#include "mmdeploy/core/operation.h"
 
 #include "mmdeploy/core/logger.h"
 

@@ -3,7 +3,7 @@
 #include "ppl/cv/cuda/cvtcolor.h"
 
 #include "mmdeploy/core/utils/formatter.h"
-#include "mmdeploy/operation/vision.h"
+#include "mmdeploy/operation/operations.h"
 
 using namespace ppl::cv::cuda;
 

@@ -2,7 +2,7 @@
 
 #include "catch.hpp"
 #include "mmdeploy/core/tensor.h"
-#include "mmdeploy/preprocess/transform/transform.h"
+#include "mmdeploy/core/transform.h"
 
 using namespace mmdeploy;
 using namespace std;

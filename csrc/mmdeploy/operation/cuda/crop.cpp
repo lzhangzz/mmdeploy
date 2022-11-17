@@ -3,7 +3,7 @@
 #include <cuda_runtime.h>
 
 #include "mmdeploy/core/utils/formatter.h"
-#include "mmdeploy/operation/vision.h"
+#include "mmdeploy/operation/operations.h"
 
 namespace mmdeploy::operation::cuda {
 

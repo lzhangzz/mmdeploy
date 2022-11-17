@@ -6,9 +6,9 @@
 #define MMDEPLOY_CSRC_MMDEPLOY_PREPROCESS_OPERATION_RESIZE_H_
 
 #include "mmdeploy/core/mat.h"
+#include "mmdeploy/core/operation.h"
 #include "mmdeploy/core/registry.h"
 #include "mmdeploy/core/tensor.h"
-#include "mmdeploy/operation/operation.h"
 
 namespace mmdeploy::operation {
 

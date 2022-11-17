@@ -2,7 +2,8 @@
 
 project(mmdeploy_operation_cpu)
 
-set(SRCS resize.cpp
+add_library(${PROJECT_NAME} OBJECT
+        resize.cpp
         cvtcolor.cpp
         pad.cpp
         to_float.cpp
@@ -10,9 +11,10 @@ set(SRCS resize.cpp
         normalize.cpp
         crop.cpp
         flip.cpp)
-
-mmdeploy_add_module(${PROJECT_NAME} "${SRCS}")
-
+set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE 1)
 target_link_libraries(${PROJECT_NAME} PRIVATE
-        mmdeploy_operation
+        mmdeploy_core
         mmdeploy_opencv_utils)
+target_link_libraries(mmdeploy_operation PRIVATE
+        ${PROJECT_NAME})
+mmdeploy_export(${PROJECT_NAME})

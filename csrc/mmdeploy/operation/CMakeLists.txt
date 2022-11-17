@@ -2,8 +2,7 @@
 
 project(mmdeploy_operation)
 
-set(SRCS operation.cpp vision.cpp)
-mmdeploy_add_module(${PROJECT_NAME} LIBRARY "${SRCS}")
+mmdeploy_add_module(${PROJECT_NAME} LIBRARY operations.cpp)
 
 add_subdirectory(cpu)
 add_subdirectory(cuda)
