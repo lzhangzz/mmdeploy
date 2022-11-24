@@ -141,7 +141,9 @@ class SDKEnd2EndModel(End2EndModel):
 
         pred = self.wrapper.invoke(img[0].contiguous().detach().cpu().numpy())
         pred = np.array(pred, dtype=np.float32)
-        return pred[np.argsort(pred[:, 0])][np.newaxis, :, 1]
+        scores = np.zeros(len(self.CLASSES), dtype=np.float32)
+        scores[pred[:, 0].astype(int)] = pred[:, 1]
+        return scores.reshape((1, -1))
 
 
 @__BACKEND_MODEL.register_module('rknn')
