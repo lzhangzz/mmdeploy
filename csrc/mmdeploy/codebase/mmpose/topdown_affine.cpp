@@ -35,6 +35,9 @@ class TopDownAffine : public transform::Transform {
     assert(args.contains("image_size"));
     from_value(args["image_size"], image_size_);
     warp_affine_ = operation::Managed<operation::WarpAffine>::Create("bilinear");
+    resize_ = operation::Managed<operation::Resize>::Create("bilinear");
+    crop_ = operation::Managed<operation::Crop>::Create();
+    pad_ = operation::Managed<operation::Pad>::Create("constant", 0);
   }
 
   ~TopDownAffine() override = default;
@@ -67,10 +70,88 @@ class TopDownAffine : public transform::Transform {
           GetWarpMatrix(r, {c[0] * 2.f, c[1] * 2.f}, {image_size_[0] - 1.f, image_size_[1] - 1.f},
                         {s[0] * 200.f, s[1] * 200.f});
       OUTCOME_TRY(warp_affine_.Apply(img, dst, trans.ptr<float>(), image_size_[1], image_size_[0]));
-    } else {
+    } else if (0) {
       cv::Mat trans =
           GetAffineTransform({c[0], c[1]}, {s[0], s[1]}, r, {image_size_[0], image_size_[1]});
       OUTCOME_TRY(warp_affine_.Apply(img, dst, trans.ptr<float>(), image_size_[1], image_size_[0]));
+    } else if (0) {
+      auto w_roi = static_cast<int>(std::round(s[0] * 200));
+      auto h_roi = static_cast<int>(std::round(s[1] * 200));
+      auto x_offset = .5f * (w_roi - 1) + .5f * w_roi / image_size_[0];
+      auto y_offset = .5f * (h_roi - 1) + .5f * h_roi / image_size_[1];
+      auto x0_roi = static_cast<int>(std::round(c[0] - x_offset));
+      auto y0_roi = static_cast<int>(std::round(c[1] - y_offset));
+      c[0] = x0_roi + x_offset;
+      c[1] = y0_roi + y_offset;
+      s[0] = w_roi / 200.f;
+      s[1] = h_roi / 200.f;
+      auto t = 0, l = 0, b = 0, r = 0;
+      l = std::max(-x0_roi, 0);
+      t = std::max(-y0_roi, 0);
+      x0_roi += l;
+      y0_roi += t;
+      auto x1_roi = x0_roi + w_roi - 1;
+      auto y1_roi = y0_roi + h_roi - 1;
+      r = std::max(x1_roi - static_cast<int>(img.shape(2)) + 1, 0);
+      b = std::max(y1_roi - static_cast<int>(img.shape(1)) + 1, 0);
+      Tensor pad = img;
+      if (t + l + b + r) {
+        Tensor tmp;
+        OUTCOME_TRY(pad_.Apply(img, tmp, t, l, b, r));
+        pad = tmp;
+      }
+      Tensor crop;
+      OUTCOME_TRY(crop_.Apply(pad, crop, y0_roi, x0_roi, y1_roi, x1_roi));
+      OUTCOME_TRY(resize_.Apply(crop, dst, image_size_[1], image_size_[0]));
+    } else {
+      s[0] *= 200;
+      s[1] *= 200;
+      const std::array img_roi{0, 0, (int)img.shape(2), (int)img.shape(1)};
+      const std::array tmp_roi{0, 0, (int)image_size_[0], (int)image_size_[1]};
+      auto roi = round({c[0] - s[0] / 2.f, c[1] - s[1] / 2.f, s[0], s[1]});
+      auto src_roi = intersect(roi, img_roi);
+      // prior scale factor
+      auto factor = (float)image_size_[0] / s[0];
+      // rounded dst roi
+      auto dst_roi = round({(src_roi[0] - roi[0]) * factor,  //
+                            (src_roi[1] - roi[1]) * factor,  //
+                            src_roi[2] * factor,             //
+                            src_roi[3] * factor});
+      dst_roi = intersect(dst_roi, tmp_roi);
+      // exact scale factors
+      auto factor_x = (float)dst_roi[2] / src_roi[2];
+      auto factor_y = (float)dst_roi[3] / src_roi[3];
+      // center of src roi
+      auto c_src_x = src_roi[0] + (src_roi[2] - 1) / 2.f;
+      auto c_src_y = src_roi[1] + (src_roi[3] - 1) / 2.f;
+      // center of dst roi
+      auto c_dst_x = dst_roi[0] + (dst_roi[2] - 1) / 2.f;
+      auto c_dst_y = dst_roi[1] + (dst_roi[3] - 1) / 2.f;
+      // vector from c_dst to (w/2, h/2)
+      auto v_dst_x = image_size_[0] / 2.f - c_dst_x;
+      auto v_dst_y = image_size_[1] / 2.f - c_dst_y;
+      // vector from c_src to corrected center
+      auto v_src_x = v_dst_x / factor_x;
+      auto v_src_y = v_dst_y / factor_y;
+      // corrected center
+      c[0] = c_src_x + v_src_x;
+      c[1] = c_src_y + v_src_y;
+      // corrected scale
+      s[0] = image_size_[0] / factor_x / 200.f;
+      s[1] = image_size_[1] / factor_y / 200.f;
+      Tensor crop, resize;
+      OUTCOME_TRY(crop_.Apply(img, crop, src_roi[1], src_roi[0], src_roi[1] + src_roi[3] - 1,
+                              src_roi[0] + src_roi[2] - 1));
+      OUTCOME_TRY(resize_.Apply(crop, resize, dst_roi[3], dst_roi[2]));
+      auto pad_t = dst_roi[1];
+      auto pad_l = dst_roi[0];
+      auto pad_b = image_size_[1] - dst_roi[3] - pad_t;
+      auto pad_r = image_size_[0] - dst_roi[2] - pad_l;
+      if (pad_t + pad_l + pad_b + pad_r) {
+        OUTCOME_TRY(pad_.Apply(resize, dst, pad_t, pad_l, pad_b, pad_r));
+      } else {
+        dst = resize;
+      }
     }
 
     data["img_shape"] = {1, image_size_[1], image_size_[0], dst.shape(3)};
@@ -79,6 +160,30 @@ class TopDownAffine : public transform::Transform {
     data["scale"] = to_value(s);
     MMDEPLOY_DEBUG("output: {}", data);
     return success();
+  }
+
+  static std::array<int, 4> round(const std::array<float, 4>& a) {
+    return {
+        static_cast<int>(std::round(a[0])),
+        static_cast<int>(std::round(a[1])),
+        static_cast<int>(std::round(a[2])),
+        static_cast<int>(std::round(a[3])),
+    };
+  }
+
+  // xywh
+  template <typename T>
+  static std::array<T, 4> intersect(std::array<T, 4> a, std::array<T, 4> b) {
+    auto x1 = std::max(a[0], b[0]);
+    auto y1 = std::max(a[1], b[1]);
+    a[2] = std::min(a[0] + a[2], b[0] + b[2]) - x1;
+    a[3] = std::min(a[1] + a[3], b[1] + b[3]) - y1;
+    a[0] = x1;
+    a[1] = y1;
+    if (a[2] <= 0 || a[3] <= 0) {
+      a = {};
+    }
+    return a;
   }
 
   void Box2cs(vector<float>& box, vector<float>& center, vector<float>& scale) {
@@ -160,6 +265,9 @@ class TopDownAffine : public transform::Transform {
 
  protected:
   operation::Managed<operation::WarpAffine> warp_affine_;
+  operation::Managed<operation::Resize> resize_;
+  operation::Managed<operation::Pad> pad_;
+  operation::Managed<operation::Crop> crop_;
   bool use_udp_{false};
   vector<int> image_size_;
   std::string backend_;
