@@ -25,7 +25,7 @@ struct InvokeImpl {
   template <typename F>
   static Result<Value> apply(F&& f, const Value& args) {
     try {
-      using ArgsType = std::tuple<uncvref_t<Args>...>;
+      using ArgsType = std::tuple<remove_cvref_t<Args>...>;
       return make_ret_val(std::apply((F &&) f, from_value<ArgsType>(args)));
     } catch (const std::exception& e) {
       MMDEPLOY_ERROR("unhandled exception: {}", e.what());
@@ -35,7 +35,7 @@ struct InvokeImpl {
     }
   }
 
-  template <typename T, typename T0 = uncvref_t<T>>
+  template <typename T, typename T0 = remove_cvref_t<T>>
   static Result<Value> make_ret_val(T&& ret) {
     if constexpr (is_tuple_v<T0>) {
       return to_value(std::forward<T>(ret));

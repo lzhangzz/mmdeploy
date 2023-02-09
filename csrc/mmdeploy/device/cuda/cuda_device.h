@@ -8,7 +8,8 @@
 #include "mmdeploy/core/device_impl.h"
 #include "mmdeploy/core/types.h"
 
-namespace mmdeploy::framework {
+namespace mmdeploy {
+namespace framework {
 
 using CudaTask = std::function<void(cudaStream_t)>;
 
@@ -191,4 +192,8 @@ class CudaDeviceGuard {
   int prev_device_id_;
 };
 
-}  // namespace mmdeploy::framework
+}  // namespace framework
+
+using framework::CudaDeviceGuard;
+
+}  // namespace mmdeploy

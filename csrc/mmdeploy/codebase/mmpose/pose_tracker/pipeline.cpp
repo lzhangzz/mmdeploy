@@ -7,13 +7,9 @@
 #include "pose_tracker/common.h"
 #include "pose_tracker/pose_tracker.h"
 
-namespace mmdeploy {
-
-MMDEPLOY_REGISTER_TYPE_ID(mmpose::_pose_tracker::Tracker, 0xcfe87980aa895d3a);
-
-}
-
 namespace mmdeploy::mmpose::_pose_tracker {
+
+MMDEPLOY_REGISTER_TYPE_ID(Tracker, 0xcfe87980aa895d3a);
 
 #define REGISTER_SIMPLE_MODULE(name, fn) \
   MMDEPLOY_REGISTER_FACTORY_FUNC(Module, (name, 0), [](const Value&) { return CreateTask(fn); });

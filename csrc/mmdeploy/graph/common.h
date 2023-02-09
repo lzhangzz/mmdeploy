@@ -41,7 +41,7 @@ inline Maybe operator/(const Maybe& maybe, const string& p) {
 }
 
 template <typename T>
-inline std::optional<T> operator/(const Maybe& maybe, identity<T>) {
+inline std::optional<T> operator/(const Maybe& maybe, type_identity<T>) {
   if (maybe) {
     return maybe->get<T>();
   }

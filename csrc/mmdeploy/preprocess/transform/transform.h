@@ -10,8 +10,6 @@
 
 namespace mmdeploy {
 
-using namespace framework;
-
 namespace transform {
 
 class MMDEPLOY_API Transform {

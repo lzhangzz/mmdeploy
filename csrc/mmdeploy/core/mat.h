@@ -11,7 +11,6 @@
 #include "mmdeploy/core/types.h"
 
 namespace mmdeploy {
-
 namespace framework {
 
 class MMDEPLOY_API Mat final {
@@ -90,9 +89,11 @@ class MMDEPLOY_API Mat final {
   int bytes_{0};
 };
 
+MMDEPLOY_REGISTER_TYPE_ID(Mat, 7);
+
 }  // namespace framework
 
-MMDEPLOY_REGISTER_TYPE_ID(framework::Mat, 7);
+using framework::Mat;
 
 }  // namespace mmdeploy
 

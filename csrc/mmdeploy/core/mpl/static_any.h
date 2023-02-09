@@ -11,6 +11,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "mmdeploy/core/mpl/type_id.h"
 #include "mmdeploy/core/mpl/type_traits.h"
 
 namespace mmdeploy {
@@ -74,7 +75,7 @@ struct _LargeHandler;
 
 template <class T>
 inline bool __compare_typeid(traits::type_id_t __id) {
-  if (__id && __id == traits::TypeId<T>::value) {
+  if (__id && __id == traits::GetTypeId<T>()) {
     return true;
   }
   return false;
@@ -104,19 +105,19 @@ class StaticAny {
   template <class ValueType, class T = std::decay_t<ValueType>,
             class = std::enable_if_t<
                 !std::is_same<T, StaticAny>::value && !detail::is_in_place_type<ValueType>::value &&
-                std::is_copy_constructible<T>::value && traits::TypeId<T>::value>>
+                std::is_copy_constructible<T>::value && traits::has_type_id<T>>>
   explicit StaticAny(ValueType&& value);
 
   template <
       class ValueType, class... Args, class T = std::decay_t<ValueType>,
       class = std::enable_if_t<std::is_constructible<T, Args...>::value &&
-                               std::is_copy_constructible<T>::value && traits::TypeId<T>::value>>
+                               std::is_copy_constructible<T>::value && traits::has_type_id<T>>>
   explicit StaticAny(std::in_place_type_t<ValueType>, Args&&... args);
 
   template <class ValueType, class U, class... Args, class T = std::decay_t<ValueType>,
             class = std::enable_if_t<
                 std::is_constructible<T, std::initializer_list<U>&, Args...>::value &&
-                std::is_copy_constructible<T>::value && traits::TypeId<T>::value>>
+                std::is_copy_constructible<T>::value && traits::has_type_id<T>>>
   explicit StaticAny(std::in_place_type_t<ValueType>, std::initializer_list<U>, Args&&... args);
 
   ~StaticAny() { this->reset(); }
@@ -134,19 +135,19 @@ class StaticAny {
   template <
       class ValueType, class T = std::decay_t<ValueType>,
       class = std::enable_if_t<!std::is_same<T, StaticAny>::value &&
-                               std::is_copy_constructible<T>::value && traits::TypeId<T>::value>>
+                               std::is_copy_constructible<T>::value && traits::has_type_id<T>>>
   StaticAny& operator=(ValueType&& v);
 
   template <
       class ValueType, class... Args, class T = std::decay_t<ValueType>,
       class = std::enable_if_t<std::is_constructible<T, Args...>::value &&
-                               std::is_copy_constructible<T>::value && traits::TypeId<T>::value>>
+                               std::is_copy_constructible<T>::value && traits::has_type_id<T>>>
   T& emplace(Args&&... args);
 
   template <class ValueType, class U, class... Args, class T = std::decay_t<ValueType>,
             class = std::enable_if_t<
                 std::is_constructible<T, std::initializer_list<U>&, Args...>::value &&
-                std::is_copy_constructible<T>::value && traits::TypeId<T>::value>>
+                std::is_copy_constructible<T>::value && traits::has_type_id<T>>>
   T& emplace(std::initializer_list<U>, Args&&...);
 
   void reset() noexcept {
@@ -163,7 +164,7 @@ class StaticAny {
     if (h_) {
       return this->__call(_Action::_TypeInfo).type_id_;
     } else {
-      return traits::TypeId<void>::value;
+      return traits::GetTypeId<void>();
     }
   }
 
@@ -262,7 +263,7 @@ struct _SmallHandler {
     return nullptr;
   }
 
-  static traits::type_id_t __type_info() { return traits::TypeId<T>::value; }
+  static traits::type_id_t __type_info() { return traits::GetTypeId<T>(); }
 };
 
 template <class T>
@@ -326,7 +327,7 @@ struct _LargeHandler {
     return nullptr;
   }
 
-  static traits::type_id_t __type_info() { return traits::TypeId<T>::value; }
+  static traits::type_id_t __type_info() { return traits::GetTypeId<T>(); }
 };
 
 }  // namespace __static_any_impl
@@ -454,7 +455,7 @@ std::add_pointer_t<ValueType> static_any_cast(StaticAny* any) noexcept {
   static_assert(!std::is_reference<ValueType>::value, "ValueType may not be a reference.");
   using ReturnType = std::add_pointer_t<ValueType>;
   if (any && any->h_) {
-    void* p = any->__call(_Action::_Get, nullptr, traits::TypeId<ValueType>::value).ptr_;
+    void* p = any->__call(_Action::_Get, nullptr, traits::GetTypeId<ValueType>()).ptr_;
     return __pointer_or_func_test<ReturnType>(p, std::is_function<ValueType>{});
   }
   return nullptr;

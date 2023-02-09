@@ -52,7 +52,7 @@ inline nlohmann::json value_to_json(const Value& value) {
 
 }  // namespace detail
 
-template <typename T, std::enable_if_t<!is_value_v<uncvref_t<T>>, int> = 0>
+template <typename T, std::enable_if_t<!is_value_v<remove_cvref_t<T>>, int> = 0>
 nlohmann::json to_json(T&& val) {
   return detail::to_json_impl(std::forward<T>(val));
 }
@@ -76,7 +76,7 @@ class JsonOutputArchive : public OutputArchive<JsonOutputArchive> {
     data_.push_back(to_json(std::forward<T>(val)));
   }
 
-  template <typename T, typename V = uncvref_t<T>,
+  template <typename T, typename V = remove_cvref_t<T>,
             std::enable_if_t<
                 std::disjunction_v<std::is_arithmetic<V>, std::is_same<V, const char*>,
                                    std::is_same<V, std::string>, std::is_same<V, nlohmann::json>>,
@@ -143,7 +143,7 @@ void from_json_impl(const nlohmann::json& json, T&& val);
 
 }  // namespace detail
 
-template <typename T, std::enable_if_t<!std::is_same_v<Value, uncvref_t<T>>, int> = 0>
+template <typename T, std::enable_if_t<!std::is_same_v<Value, remove_cvref_t<T>>, int> = 0>
 void from_json(const nlohmann::json& json, T&& val) {
   detail::from_json_impl(json, std::forward<T>(val));
 }

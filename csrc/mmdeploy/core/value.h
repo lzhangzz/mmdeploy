@@ -15,7 +15,7 @@
 #include "mmdeploy/core/logger.h"
 #include "mmdeploy/core/mpl/priority_tag.h"
 #include "mmdeploy/core/mpl/static_any.h"
-#include "mmdeploy/core/mpl/type_traits.h"
+#include "mmdeploy/core/mpl/type_id.h"
 #include "mmdeploy/core/status_code.h"
 
 namespace mmdeploy {
@@ -267,7 +267,7 @@ class Value {
   template <class T, std::enable_if_t<std::is_constructible<String, T>::value, bool> = true>
   Value(T&& value) : type_(kString), data_(String{std::forward<T>(value)}) {}
 
-  template <typename T, std::enable_if_t<is_cast_by_erasure<std::decay_t<T>>::value, bool> = true>
+  template <typename T, std::enable_if_t<traits::has_type_id<remove_cvref_t<T>>, bool> = true>
   Value(T&& value) : Value(cast_by_erasure(std::forward<T>(value))) {}
 
   template <typename T>
@@ -328,7 +328,7 @@ class Value {
     if constexpr (std::is_void_v<T>) {
       return true;
     } else {
-      return traits::TypeId<T>::value == data_.any->type();
+      return traits::GetTypeId<T>() == data_.any->type();
     }
   }
 
@@ -461,7 +461,7 @@ class Value {
   // T* -> EraseType<T>*
   template <
       typename T, typename T0 = std::remove_pointer_t<T>,
-      std::enable_if_t<std::is_pointer<T>::value && is_cast_by_erasure<T0>::value, bool> = true>
+      std::enable_if_t<std::is_pointer<T>::value && traits::has_type_id<T0>, bool> = true>
   auto _get_ptr() noexcept
       -> decltype(std::declval<Value&>().get_erased_ptr(std::declval<EraseType<T0>*>())) {
     return get_erased_ptr(static_cast<EraseType<T0>*>(nullptr));
@@ -469,7 +469,7 @@ class Value {
 
   // const T* -> const EraseType<T>*
   template <typename T, typename T0 = std::remove_const_t<std::remove_pointer_t<T>>,
-            std::enable_if_t<detail::is_pointer_to_const<T>::value && is_cast_by_erasure<T0>::value,
+            std::enable_if_t<detail::is_pointer_to_const<T>::value && traits::has_type_id<T0>,
                              bool> = true>
   auto _get_ptr() const noexcept
       -> decltype(std::declval<Value&>().get_erased_ptr(std::declval<const EraseType<T0>*>())) {

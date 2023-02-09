@@ -1,5 +1,6 @@
 // Copyright (c) OpenMMLab. All rights reserved.
-
+// Modified from
+// https://github.com/facebookexperimental/libunifex/blob/main/include/unifex/type_traits.hpp
 #ifndef MMDEPLOY_SRC_CORE_MPL_TYPE_TRAITS_H_
 #define MMDEPLOY_SRC_CORE_MPL_TYPE_TRAITS_H_
 
@@ -7,42 +8,81 @@
 
 namespace mmdeploy {
 
+/////////////////////////////////////////////////////////
+// remove_cvref without handling volatile
 template <typename T>
-struct uncvref {
-  typedef std::remove_cv_t<std::remove_reference_t<T>> type;
+struct remove_cvref {
+  using type = T;
+};
+template <typename T>
+struct remove_cvref<const T> {
+  using type = T;
+};
+template <typename T>
+struct remove_cvref<T&> {
+  using type = T;
+};
+template <typename T>
+struct remove_cvref<const T&> {
+  using type = T;
+};
+template <typename T>
+struct remove_cvref<T&&> {
+  using type = T;
+};
+template <typename T>
+struct remove_cvref<const T&&> {
+  using type = T;
 };
 
 template <typename T>
-using uncvref_t = typename uncvref<T>::type;
+using remove_cvref_t = typename remove_cvref<T>::type;
 
-template <class T>
-struct is_cast_by_erasure : std::false_type {};
+template <typename Fn, typename... Args>
+using callable_result_t = decltype(std::declval<Fn&&>()(std::declval<Args&&>()...));
 
-namespace traits {
+namespace _is_callable {
+struct yes_type {
+  char dummy;
+};
+struct no_type {
+  char dummy[2];
+};
+static_assert(sizeof(yes_type) != sizeof(no_type));
 
-using type_id_t = uint64_t;
+template <typename Fn, typename... Args, typename = callable_result_t<Fn, Args...>>
+yes_type _try_call(Fn (*)(Args...)) noexcept(
+    noexcept(std::declval<Fn&&>()(std::declval<Args&&>()...)));
+no_type _try_call(...) noexcept(false);
 
-template <class T>
-struct TypeId {
-  static constexpr type_id_t value = 0;
+}  // namespace _is_callable
+
+template <typename Fn, typename... Args>
+inline constexpr bool is_callable_v =
+    sizeof(decltype(_is_callable::_try_call(static_cast<Fn (*)(Args...)>(nullptr)))) ==
+    sizeof(_is_callable::yes_type);
+
+template <typename Fn, typename... Args>
+inline constexpr bool is_nothrow_callable_v =
+    noexcept(_is_callable::_try_call(static_cast<Fn (*)(Args...)>(nullptr)));
+
+template <template <typename...> class T, typename... Args>
+struct _defer {
+  using type = T<Args...>;
 };
 
-template <>
-struct TypeId<void> {
-  static constexpr auto value = static_cast<type_id_t>(-1);
+template <template <typename...> class T, typename... Args>
+struct _defer_args {
+  using type = T<typename Args::type...>;
 };
 
-// ! This only works when calling inside mmdeploy namespace
-#define MMDEPLOY_REGISTER_TYPE_ID(type, id) \
-  namespace traits {                        \
-  template <>                               \
-  struct TypeId<type> {                     \
-    static constexpr type_id_t value = id;  \
-  };                                        \
-  }                                         \
-  template <>                               \
-  struct is_cast_by_erasure<type> : std::true_type {};
-}  // namespace traits
+template <typename T>
+struct type_identity {
+  using type = T;
+};
+
+template <typename T>
+using type_identity_t = typename type_identity<T>::type;
 
 }  // namespace mmdeploy
 

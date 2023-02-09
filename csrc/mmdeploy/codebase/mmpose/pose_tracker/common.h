@@ -6,6 +6,7 @@
 #include <array>
 #include <vector>
 
+#include "mmdeploy/core/mpl/type_id.h"
 #include "mmdeploy/core/mpl/type_traits.h"
 #include "mmdeploy/pose_tracker.h"
 
@@ -45,13 +46,10 @@ inline void SetDefaultParams(mmdeploy_pose_tracker_param_t& p) {
   (std::array<float, 3>&)p.smooth_params = {0.007, 1., 1.};
 }
 
+MMDEPLOY_REGISTER_TYPE_ID(TrackerResult, 0xacb6ddb7dc1ffbca);
+
 }  // namespace mmdeploy::mmpose::_pose_tracker
 
-namespace mmdeploy {
-
 MMDEPLOY_REGISTER_TYPE_ID(mmdeploy_pose_tracker_param_t*, 0x32bc6919d5287035);
-MMDEPLOY_REGISTER_TYPE_ID(mmpose::_pose_tracker::TrackerResult, 0xacb6ddb7dc1ffbca);
-
-}  // namespace mmdeploy
 
 #endif  // MMDEPLOY_COMMON_H

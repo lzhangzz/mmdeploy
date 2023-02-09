@@ -67,7 +67,7 @@ inline Result<unique_ptr<Module>> CreateModule(const Value& config) {
 Result<unique_ptr<Node>> TaskBuilder::BuildImpl() {
   try {
     auto task = std::make_unique<Task>();
-    if (auto scope = Maybe{config_} / "context" / "scope" / identity<profiler::Scope*>{}) {
+    if (auto scope = Maybe{config_} / "context" / "scope" / type_identity<profiler::Scope*>{}) {
       auto module_name = config_.value<std::string>("module", "");
       auto name = config_.value<std::string>("name", "");
       string scope_name = (name != "") ? name : module_name;
@@ -80,9 +80,9 @@ Result<unique_ptr<Node>> TaskBuilder::BuildImpl() {
 
     OUTCOME_TRY(task->module_, CreateModule(config_));
 
-    if (auto name = Maybe{config_} / "scheduler" / identity<string>{}) {
+    if (auto name = Maybe{config_} / "scheduler" / type_identity<string>{}) {
       if (auto sched = Maybe{config_} / "context" / "scheduler" / *name /
-                       identity<TypeErasedScheduler<Value>>{}) {
+                       type_identity<TypeErasedScheduler<Value>>{}) {
         task->sched_ = std::move(*sched);
       }
     }

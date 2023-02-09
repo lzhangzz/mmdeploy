@@ -4,7 +4,7 @@
 #ifndef MMDEPLOY_CSRC_EXPERIMENTAL_EXECUTION_TAG_INVOKE_H_
 #define MMDEPLOY_CSRC_EXPERIMENTAL_EXECUTION_TAG_INVOKE_H_
 
-#include "type_traits.h"
+#include "mmdeploy/core/mpl/type_traits.h"
 
 namespace mmdeploy {
 
@@ -55,8 +55,8 @@ using tag_t = std::remove_const_t<std::remove_reference_t<decltype(CPO)>>;
 using _tag_invoke::tag_invoke_result_t;
 
 template <typename CPO, typename... Args>
-inline constexpr bool is_tag_invocable_v = (sizeof(_tag_invoke::try_tag_invoke<CPO, Args...>(0))) ==
-                                           (sizeof(_tag_invoke::yes_type));
+inline constexpr bool is_tag_invocable_v =
+    (sizeof(_tag_invoke::try_tag_invoke<CPO, Args...>(0))) == (sizeof(_tag_invoke::yes_type));
 
 template <typename CPO, typename... Args>
 struct tag_invoke_result
@@ -75,8 +75,8 @@ template <typename CPO, typename... Args>
 using is_nothrow_tag_invocable = std::bool_constant<is_nothrow_tag_invocable_v<CPO, Args...>>;
 
 template <typename CPO, typename... Args>
-inline constexpr bool tag_invocable = (sizeof(_tag_invoke::try_tag_invoke<CPO, Args...>(0)) ==
-                                       sizeof(_tag_invoke::yes_type));
+inline constexpr bool tag_invocable =
+    (sizeof(_tag_invoke::try_tag_invoke<CPO, Args...>(0)) == sizeof(_tag_invoke::yes_type));
 
 }  // namespace mmdeploy
 

@@ -11,8 +11,6 @@
 
 namespace mmdeploy {
 
-using namespace framework;
-
 class Context {
  public:
   explicit Context(const Value& config) {

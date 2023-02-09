@@ -7,10 +7,10 @@
 #include <vector>
 
 #include "mmdeploy/core/device.h"
+#include "mmdeploy/core/mpl/type_id.h"
 #include "mmdeploy/core/types.h"
 
 namespace mmdeploy {
-
 namespace framework {
 
 using TensorShape = std::vector<int64_t>;
@@ -83,9 +83,13 @@ class MMDEPLOY_API Tensor {
 
 // static_assert(sizeof(Tensor) == 80);
 
+MMDEPLOY_REGISTER_TYPE_ID(Tensor, 6);
+
 }  // namespace framework
 
-MMDEPLOY_REGISTER_TYPE_ID(framework::Tensor, 6);
+using framework::Tensor;
+using framework::TensorDesc;
+using framework::TensorShape;
 
 }  // namespace mmdeploy
 

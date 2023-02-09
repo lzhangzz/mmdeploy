@@ -121,7 +121,7 @@ template <typename T>
 struct IsCvPoint<::cv::Point_<T>> : std::true_type {};
 
 template <typename Archive, typename T,
-          std::enable_if_t<detail::IsCvPoint<uncvref_t<T>>::value, int> = 0>
+          std::enable_if_t<detail::IsCvPoint<remove_cvref_t<T>>::value, int> = 0>
 void serialize(Archive&& archive, T&& p) {
   int size{2};
   std::forward<Archive>(archive).init(size);

@@ -15,8 +15,6 @@
 
 namespace mmdeploy {
 
-using namespace framework;
-
 namespace trace {
 
 struct CvtColorParam {

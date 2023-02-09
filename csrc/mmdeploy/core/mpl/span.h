@@ -124,7 +124,7 @@ Span(T (&)[N]) -> Span<T>;
 
 template <typename U, typename = std::void_t<decltype(std::declval<U>().data())>,
           typename = std::void_t<decltype(std::declval<U>().size())>>
-Span(U& v) -> Span<typename uncvref_t<U>::value_type>;
+Span(U& v) -> Span<typename remove_cvref_t<U>::value_type>;
 
 template <typename T>
 Span(std::initializer_list<T>) -> Span<const T>;

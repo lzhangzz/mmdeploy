@@ -8,12 +8,12 @@
 #include <string>
 #include <vector>
 
+#include "mmdeploy/core/mpl/type_id.h"
 #include "mmdeploy/core/mpl/type_traits.h"
 #include "mmdeploy/core/serialization.h"
 #include "mmdeploy/core/types.h"
 
 namespace mmdeploy {
-
 namespace framework {
 
 struct model_meta_info_t {
@@ -97,9 +97,15 @@ class MMDEPLOY_API Model {
   deploy_meta_info_t meta_;
 };
 
+MMDEPLOY_REGISTER_TYPE_ID(Model, 5);
+
 }  // namespace framework
 
-MMDEPLOY_REGISTER_TYPE_ID(framework::Model, 5);
+#ifndef MMDEPLOY_CSRC_MMDEPLOY_APIS_CXX_COMMON_H_  // avoid name conflict with C++ API
+
+using framework::Model;
+
+#endif
 
 }  // namespace mmdeploy
 

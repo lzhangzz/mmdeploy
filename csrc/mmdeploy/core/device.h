@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "mmdeploy/core/macro.h"
+#include "mmdeploy/core/mpl/type_id.h"
 #include "mmdeploy/core/mpl/type_traits.h"
 #include "mmdeploy/core/status_code.h"
 
@@ -343,11 +344,19 @@ class MMDEPLOY_API PlatformRegistry {
 
 MMDEPLOY_API PlatformRegistry& gPlatformRegistry();
 
+MMDEPLOY_REGISTER_TYPE_ID(Device, 1);
+MMDEPLOY_REGISTER_TYPE_ID(Buffer, 2);
+MMDEPLOY_REGISTER_TYPE_ID(Stream, 3);
+MMDEPLOY_REGISTER_TYPE_ID(Event, 4);
+
 }  // namespace framework
 
-MMDEPLOY_REGISTER_TYPE_ID(framework::Device, 1);
-MMDEPLOY_REGISTER_TYPE_ID(framework::Buffer, 2);
-MMDEPLOY_REGISTER_TYPE_ID(framework::Stream, 3);
-MMDEPLOY_REGISTER_TYPE_ID(framework::Event, 4);
+using framework::Buffer;
+using framework::Device;
+using framework::DeviceId;
+using framework::Event;
+using framework::GetNative;
+using framework::Platform;
+using framework::Stream;
 
 }  // namespace mmdeploy

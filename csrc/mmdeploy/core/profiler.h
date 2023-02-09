@@ -17,8 +17,7 @@
 #include "mmdeploy/core/macro.h"
 #include "mmdeploy/core/value.h"
 
-namespace mmdeploy {
-namespace profiler {
+namespace mmdeploy::profiler {
 
 struct Profiler;
 struct Scope;
@@ -77,10 +76,7 @@ struct MMDEPLOY_API Profiler {
   Scope* root_{};
 };
 
-}  // namespace profiler
+MMDEPLOY_REGISTER_TYPE_ID(Scope*, 10);
 
-MMDEPLOY_REGISTER_TYPE_ID(profiler::Scope*, 10);
-
-}  // namespace mmdeploy
-
+}  // namespace mmdeploy::profiler
 #endif  // MMDEPLOY_CSRC_MMDEPLOY_GRAPH_PROFILER_H_

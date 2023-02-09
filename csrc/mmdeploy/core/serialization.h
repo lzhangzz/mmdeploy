@@ -71,7 +71,7 @@ using has_reserve = detail::is_detected<reserve_t, T>;
 
 namespace detail {
 
-template <typename Archive, typename T, typename U = uncvref_t<T>,
+template <typename Archive, typename T, typename U = remove_cvref_t<T>,
           typename ValueType = typename U::value_type,
           std::enable_if_t<!std::is_same_v<U, std::string>, int> = 0>
 auto save(Archive &archive, T &&iterable)
@@ -99,7 +99,7 @@ class KeyValue {
   std::tuple<T0, T1> data_;
 };
 
-template <typename Archive, typename T, typename U = uncvref_t<T>,
+template <typename Archive, typename T, typename U = remove_cvref_t<T>,
           typename KeyType = typename U::key_type, typename MappedType = typename U::mapped_type,
           std::enable_if_t<!std::is_constructible_v<std::string, KeyType>, int> = 0>
 auto save(Archive &archive, T &object) -> std::void_t<decltype(object.begin(), object.end())> {
@@ -113,7 +113,7 @@ auto save(Archive &archive, T &object) -> std::void_t<decltype(object.begin(), o
   }
 }
 
-template <typename Archive, typename T, typename U = uncvref_t<T>,
+template <typename Archive, typename T, typename U = remove_cvref_t<T>,
           typename KeyType = typename U::key_type, typename MappedType = typename U::mapped_type,
           std::enable_if_t<std::is_constructible_v<std::string, KeyType>, int> = 0>
 auto save(Archive &archive, T &object) -> std::void_t<decltype(object.begin(), object.end())> {
@@ -158,7 +158,7 @@ void load(Archive &archive, std::tuple<Ts...> &tuple) {
   load_tuple_impl(archive, tuple, std::index_sequence_for<Ts...>{});
 }
 
-template <typename Archive, typename T, typename U = uncvref_t<T>,
+template <typename Archive, typename T, typename U = remove_cvref_t<T>,
           typename ValueType = typename U::value_type,
           std::enable_if_t<!std::is_same_v<U, std::string>, int> = 0>
 auto load(Archive &&archive, T &&vec) -> std::void_t<decltype(vec.push_back(ValueType{}))> {
@@ -190,7 +190,7 @@ void load(Archive &archive, T (&v)[N]) {
   }
 }
 
-template <typename Archive, typename T, typename U = uncvref_t<T>,
+template <typename Archive, typename T, typename U = remove_cvref_t<T>,
           typename ValueType = typename U::value_type,
           std::enable_if_t<std::conjunction_v<std::is_default_constructible<ValueType>,
                                               std::negation<has_mapped_type<U>>>,
@@ -207,7 +207,7 @@ auto load(Archive &&archive, T &&set)
 }
 
 template <
-    typename Archive, typename T, typename U = uncvref_t<T>,
+    typename Archive, typename T, typename U = remove_cvref_t<T>,
     typename KeyType = typename U::key_type, typename MappedType = typename U::mapped_type,
     std::enable_if_t<std::conjunction_v<std::negation<std::is_constructible<KeyType, std::string>>,
                                         std::is_default_constructible<KeyType>,
@@ -224,7 +224,7 @@ void load(Archive &&archive, T &&object) {
   };
 }
 
-template <typename Archive, typename T, typename U = uncvref_t<T>,
+template <typename Archive, typename T, typename U = remove_cvref_t<T>,
           typename KeyType = typename U::key_type, typename MappedType = typename U::mapped_type,
           std::enable_if_t<std::conjunction_v<std::is_constructible<KeyType, std::string>,
                                               std::is_default_constructible<MappedType>>,

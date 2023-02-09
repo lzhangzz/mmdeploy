@@ -10,8 +10,6 @@
 
 namespace mmdeploy::graph {
 
-using namespace framework;
-
 InferenceBuilder::InferenceBuilder(Value config) : Builder(std::move(config)) {}
 
 Result<unique_ptr<Node>> InferenceBuilder::BuildImpl() {
@@ -21,7 +19,7 @@ Result<unique_ptr<Node>> InferenceBuilder::BuildImpl() {
     model = model_config.get<Model>();
   } else {
     auto model_name = model_config.get<string>();
-    if (auto m = Maybe{config_} / "context" / "model" / model_name / identity<Model>{}) {
+    if (auto m = Maybe{config_} / "context" / "model" / model_name / type_identity<Model>{}) {
       model = *m;
     } else {
       model = Model(model_name);

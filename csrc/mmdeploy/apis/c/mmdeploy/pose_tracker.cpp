@@ -9,12 +9,6 @@
 #include "mmdeploy/core/mpl/structure.h"
 #include "mmdeploy/pipeline.h"
 
-namespace mmdeploy {
-
-using namespace framework;
-
-}  // namespace mmdeploy
-
 using namespace mmdeploy;
 
 namespace {

@@ -9,7 +9,7 @@
 #include <utility>
 
 #include "mmdeploy/core/mpl/detected.h"
-#include "tag_invoke.h"
+#include "mmdeploy/core/mpl/tag_invoke.h"
 
 #define MMDEPLOY_REQUIRES(...) std::enable_if_t<__VA_ARGS__, int> = 0
 
