@@ -113,9 +113,9 @@ class CvtColorImpl : public CvtColor {
 
     switch (src.type()) {
       case DataType::kINT8:
-        return convert(basic_type<uint8_t>{});
+        return convert(type_identity<uint8_t>{});
       case DataType::kFLOAT:
-        return convert(basic_type<float>{});
+        return convert(type_identity<float>{});
       default:
         return Status(eNotSupported);
     }

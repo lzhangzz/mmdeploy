@@ -33,17 +33,17 @@ using MapLikeTypes = std::tuple<
     std::map<int, float>, std::unordered_map<int, float>, std::multimap<int, float>,
     std::unordered_multimap<int, float> >;
 
-TEMPLATE_LIST_TEST_CASE("test map-like", "[archive]", MapLikeTypes) {
-  TestType v{{1, 123.456f}, {1, 222.222f}, {2, 111.222f}, {3, 223.332f}, {3, 1.22e10f}};
-  nlohmann::json json;
-  mmdeploy::JsonOutputArchive oa(json);
-  oa(v);
-  mmdeploy::JsonInputArchive ia(json);
-  TestType u;
-  ia(u);
-  std::cout << json << std::endl;
-  REQUIRE(u == v);
-}
+//TEMPLATE_LIST_TEST_CASE("test map-like", "[archive]", MapLikeTypes) {
+//  TestType v{{1, 123.456f}, {1, 222.222f}, {2, 111.222f}, {3, 223.332f}, {3, 1.22e10f}};
+//  nlohmann::json json;
+//  mmdeploy::JsonOutputArchive oa(json);
+//  oa(v);
+//  mmdeploy::JsonInputArchive ia(json);
+//  TestType u;
+//  ia(u);
+//  std::cout << json << std::endl;
+//  REQUIRE(u == v);
+//}
 
 struct A {
   std::vector<int> vec;

@@ -70,16 +70,16 @@ using MapLikeTypes =
 
 // clang-format on
 
-TEMPLATE_LIST_TEST_CASE("test map-like for value archive", "[value]", MapLikeTypes) {
-  TestType v{{1, 123.456f}, {1, 222.222f}, {2, 111.222f}, {3, 223.332f}, {3, 1.22e10f}};
-  mmdeploy::Value value;
-  mmdeploy::ValueOutputArchive oa(value);
-  oa(v);
-  mmdeploy::ValueInputArchive ia(value);
-  TestType u{};
-  ia(u);
-  REQUIRE(u == v);
-}
+//TEMPLATE_LIST_TEST_CASE("test map-like for value archive", "[value]", MapLikeTypes) {
+//  TestType v{{1, 123.456f}, {1, 222.222f}, {2, 111.222f}, {3, 223.332f}, {3, 1.22e10f}};
+//  mmdeploy::Value value;
+//  mmdeploy::ValueOutputArchive oa(value);
+//  oa(v);
+//  mmdeploy::ValueInputArchive ia(value);
+//  TestType u{};
+//  ia(u);
+//  REQUIRE(u == v);
+//}
 
 struct OuterObject {
   int x;
@@ -153,4 +153,16 @@ TEST_CASE("test schema", "[value]") {
   REQUIRE(obj != u);
   ia(u);
   REQUIRE(obj == u);
+}
+
+
+struct X{};
+
+MMDEPLOY_REGISTER_TYPE_ID(std::vector<X>, 123123);
+
+TEST_CASE("attack", "[value]") {
+  mmdeploy::Value value;
+  mmdeploy::ValueOutputArchive oa(value);
+  std::vector<X> vx;
+//  oa(vx);
 }

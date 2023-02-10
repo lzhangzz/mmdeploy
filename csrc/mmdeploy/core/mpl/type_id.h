@@ -12,19 +12,19 @@ namespace traits {
 using type_id_t = uint64_t;
 
 template <typename T>
-struct get_type_id_t {
+struct get_type_id_cpo {
   auto operator()() const { return tag_invoke(*this); }
 };
 
 template <typename T>
-inline constexpr get_type_id_t<T> GetTypeId{};
+inline constexpr get_type_id_cpo<T> GetTypeId{};
 
 template <typename T>
-inline constexpr auto has_type_id = tag_invocable<get_type_id_t<T>>;
+inline constexpr auto has_type_id = tag_invocable<get_type_id_cpo<T>>;
 
 #define MMDEPLOY_REGISTER_TYPE_ID(type, id)                  \
   inline constexpr ::mmdeploy::traits::type_id_t tag_invoke( \
-      ::mmdeploy::traits::get_type_id_t<type>) {             \
+      ::mmdeploy::traits::get_type_id_cpo<type>) {           \
     return id;                                               \
   }
 

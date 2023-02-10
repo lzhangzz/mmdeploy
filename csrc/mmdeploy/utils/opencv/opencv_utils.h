@@ -112,47 +112,23 @@ MMDEPLOY_API bool Compare(const cv::Mat& src1, const cv::Mat& src2, float thresh
 
 }  // namespace cpu
 
-namespace detail {
+namespace serialization {
 
-template <typename T>
-struct IsCvPoint : std::false_type {};
-
-template <typename T>
-struct IsCvPoint<::cv::Point_<T>> : std::true_type {};
-
-template <typename Archive, typename T,
-          std::enable_if_t<detail::IsCvPoint<remove_cvref_t<T>>::value, int> = 0>
-void serialize(Archive&& archive, T&& p) {
-  int size{2};
-  std::forward<Archive>(archive).init(size);
-  std::forward<Archive>(archive).item(std::forward<T>(p).x);
-  std::forward<Archive>(archive).item(std::forward<T>(p).y);
-}
-
-template <typename Archive, typename T, std::enable_if_t<detail::IsCvPoint<T>::value, int> = 0>
-void save(Archive& archive, std::vector<T>& v) {
-  archive.init(array_tag<T>{v.size() * 2});
+template <typename Archive, typename T>
+void tag_invoke(serialization::save_cpo, Archive& archive, const std::vector<cv::Point_<T>>& v) {
+  archive.init(serialization::array_tag<T>{v.size() * 2});
   for (const auto& p : v) {
     archive.item(p.x);
     archive.item(p.y);
   }
 }
 
-template <typename Archive, typename T, std::enable_if_t<detail::IsCvPoint<T>::value, int> = 0>
-void save(Archive& archive, const std::vector<T>& v) {
-  archive.init(array_tag<T>{v.size() * 2});
-  for (const auto& p : v) {
-    archive.item(p.x);
-    archive.item(p.y);
-  }
-}
-
-template <typename Archive, typename T, std::enable_if_t<detail::IsCvPoint<T>::value, int> = 0>
-void load(Archive& archive, std::vector<T>& v) {
+template <typename Archive, typename T>
+void tag_invoke(serialization::load_cpo, Archive& archive, std::vector<cv::Point_<T>>& v) {
   size_t size{};
   archive.init(size);
   size /= 2;
-  T p;
+  cv::Point_<T> p;
   for (int i = 0; i < size; ++i) {
     archive.item(p.x);
     archive.item(p.y);
@@ -160,7 +136,7 @@ void load(Archive& archive, std::vector<T>& v) {
   }
 }
 
-}  // namespace detail
+}  // namespace serialization
 
 }  // namespace mmdeploy
 

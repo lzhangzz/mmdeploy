@@ -11,29 +11,11 @@
 #include <vector>
 
 #include "mmdeploy/core/macro.h"
+#include "mmdeploy/core/mpl/range.h"
 #include "mmdeploy/core/mpl/span.h"
+#include "mmdeploy/core/mpl/tag_invoke.h"
 
 namespace mmdeploy {
-
-template <typename T>
-struct basic_type {
-  using type = T;
-};
-
-template <typename Iterator>
-class iterator_range {
- public:
-  explicit iterator_range(Iterator first, Iterator last) : first_(first), last_(last) {}
-  explicit iterator_range(std::pair<Iterator, Iterator> range)
-      : iterator_range(range.first, range.second) {}
-
-  auto begin() noexcept { return first_; }
-  auto end() noexcept { return last_; }
-
- private:
-  Iterator first_;
-  Iterator last_;
-};
 
 namespace _registry {
 
@@ -46,7 +28,7 @@ struct _get_signature {
 };
 
 template <typename T>
-using get_signature_t = decltype(get_signature(basic_type<T>{}));
+using get_signature_t = decltype(get_signature(type_identity<T>{}));
 
 template <typename T>
 struct _get_signature<T, std::void_t<get_signature_t<T>>> {
@@ -166,11 +148,6 @@ class Registry : public Registry<void> {
   }
 };
 
-template <typename Tag>
-auto gRegistry() -> decltype((get_registry(basic_type<Tag>{}))) {
-  return get_registry(basic_type<Tag>{});
-}
-
 template <typename F>
 class Registerer {
  public:
@@ -179,6 +156,14 @@ class Registerer {
  private:
   F func_;
 };
+
+template <typename T>
+struct get_registry_cpo {
+  auto& operator()() const { return tag_invoke(*this); }
+};
+
+template <typename T>
+inline constexpr get_registry_cpo<T> gRegistry{};
 
 }  // namespace _registry
 
@@ -196,20 +181,20 @@ using SimpleCreator = _registry::SimpleCreator<_registry::GetSignature<Tag>>;
 
 // Specify creator signature for tag
 #define MMDEPLOY_CREATOR_SIGNATURE(tag, signature) \
-  ::mmdeploy::basic_type<signature> get_signature(::mmdeploy::basic_type<tag>);
+  ::mmdeploy::type_identity<signature> get_signature(::mmdeploy::type_identity<tag>);
 
 #define MMDEPLOY_DECLARE_REGISTRY(tag, signature) \
   MMDEPLOY_CREATOR_SIGNATURE(tag, signature)      \
-  MMDEPLOY_API ::mmdeploy::Registry<tag>& get_registry(::mmdeploy::basic_type<tag>);
+  MMDEPLOY_API ::mmdeploy::Registry<tag>& tag_invoke(::mmdeploy::_registry::get_registry_cpo<tag>);
 
 #define MMDEPLOY_DECLARE_REGISTRY_EXPAND(tag, signature)        \
   MMDEPLOY_CREATOR_SIGNATURE(tag, MMDEPLOY_PP_EXPAND signature) \
-  MMDEPLOY_API ::mmdeploy::Registry<tag>& get_registry(::mmdeploy::basic_type<tag>);
+  MMDEPLOY_API ::mmdeploy::Registry<tag>& tag_invoke(::mmdeploy::_registry::get_registry_cpo<tag>);
 
-#define MMDEPLOY_DEFINE_REGISTRY(tag)                                    \
-  ::mmdeploy::Registry<tag>& get_registry(::mmdeploy::basic_type<tag>) { \
-    static ::mmdeploy::Registry<tag> instance{};                         \
-    return instance;                                                     \
+#define MMDEPLOY_DEFINE_REGISTRY(tag)                                                   \
+  ::mmdeploy::Registry<tag>& tag_invoke(::mmdeploy::_registry::get_registry_cpo<tag>) { \
+    static ::mmdeploy::Registry<tag> instance{};                                        \
+    return instance;                                                                    \
   }
 
 #define MMDEPLOY_REGISTER_CREATOR(tag, creator_type)                    \

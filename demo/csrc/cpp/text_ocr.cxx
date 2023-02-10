@@ -45,6 +45,7 @@ int main(int argc, char* argv[]) {
   auto sess = v.get_session(img);
   for (size_t i = 0; i < bboxes.size(); ++i) {
     mmdeploy_text_detection_t& bbox = bboxes[i];
+//    sess.add_text_det(bbox.bbox, bbox.score, nullptr, 0, i);
     mmdeploy_text_recognition_t& text = texts[i];
     sess.add_text_det(bbox.bbox, bbox.score, text.text, text.length, i);
   }

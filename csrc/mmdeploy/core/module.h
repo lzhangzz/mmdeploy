@@ -10,6 +10,8 @@
 
 namespace mmdeploy {
 
+namespace framework {
+
 class MMDEPLOY_API Module {
  public:
   virtual ~Module() = default;
@@ -17,6 +19,10 @@ class MMDEPLOY_API Module {
 };
 
 MMDEPLOY_DECLARE_REGISTRY(Module, std::unique_ptr<Module>(const Value& config));
+
+}  // namespace framework
+
+using framework::Module;
 
 }  // namespace mmdeploy
 

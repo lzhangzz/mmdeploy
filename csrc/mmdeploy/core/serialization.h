@@ -10,6 +10,7 @@
 
 #include "mmdeploy/core/macro.h"
 #include "mmdeploy/core/mpl/detected.h"
+#include "mmdeploy/core/mpl/tag_invoke.h"
 #include "mmdeploy/core/mpl/type_traits.h"
 #include "mmdeploy/core/status_code.h"
 
@@ -19,23 +20,58 @@ namespace mmdeploy {
 
 #define MMDEPLOY_ARCHIVE_MEMBERS(...)           \
   template <typename Archive>                   \
-  void serialize(Archive &archive) {            \
+  void serialize(Archive& archive) {            \
     MMDEPLOY_ARCHIVE_NVP(archive, __VA_ARGS__); \
   }
 
 #define MMDEPLOY_NVP(var) \
-  ::mmdeploy::NamedValue { std::forward_as_tuple(#var, var) }
+  ::mmdeploy::serialization::NamedValue { std::forward_as_tuple(#var, var) }
+
+namespace serialization {
+
+struct save_cpo {
+  template <typename Archive, typename T>
+  auto operator()(Archive&& a, T&& v) const
+      noexcept(noexcept(tag_invoke(*this, (Archive &&) a, (T &&) v)))
+          -> decltype(tag_invoke(*this, (Archive &&) a, (T &&) v)) {
+    return tag_invoke(*this, (Archive &&) a, (T &&) v);
+  }
+};
+
+inline constexpr save_cpo save{};
+
+struct load_cpo {
+  template <typename Archive, typename T>
+  auto operator()(Archive&& a, T&& v) const
+      noexcept(noexcept(tag_invoke(*this, (Archive &&) a, (T &&) v)))
+          -> decltype(tag_invoke(*this, (Archive &&) a, (T &&) v)) {
+    return tag_invoke(*this, (Archive &&) a, (T &&) v);
+  }
+};
+
+inline constexpr load_cpo load{};
+
+struct serialize_cpo {
+  template <typename Archive, typename T>
+  auto operator()(Archive&& a, T&& v) const
+      noexcept(noexcept(tag_invoke(*this, (Archive &&) a, (T &&) v)))
+          -> decltype(tag_invoke(*this, (Archive &&) a, (T &&) v)) {
+    return tag_invoke(*this, (Archive &&) a, (T &&) v);
+  }
+};
+
+inline constexpr serialize_cpo serialize{};
 
 template <typename NameT, typename ValueT>
 class NamedValue {
  public:
-  explicit NamedValue(std::tuple<NameT, ValueT> &&data) : data_(std::move(data)) {}
+  explicit NamedValue(std::tuple<NameT, ValueT>&& data) : data_(std::move(data)) {}
   template <typename Archive>
-  void serialize(Archive &archive) {
+  void serialize(Archive& archive) {
     archive.named_value(std::forward<NameT>(std::get<0>(data_)),
                         std::forward<ValueT>(std::get<1>(data_)));
   }
-  std::tuple<NameT, ValueT> &data() { return data_; }
+  std::tuple<NameT, ValueT>& data() { return data_; }
 
  private:
   std::tuple<NameT, ValueT> data_;
@@ -69,99 +105,141 @@ using reserve_t = decltype(std::declval<T>().reserve(std::size_t{0}));
 template <typename T>
 using has_reserve = detail::is_detected<reserve_t, T>;
 
-namespace detail {
-
+// range -> array archive
 template <typename Archive, typename T, typename U = remove_cvref_t<T>,
           typename ValueType = typename U::value_type,
           std::enable_if_t<!std::is_same_v<U, std::string>, int> = 0>
-auto save(Archive &archive, T &&iterable)
+auto tag_invoke(save_cpo, Archive& archive, T&& iterable)
     -> std::void_t<decltype(iterable.begin(), iterable.end())> {
   if constexpr (has_size<T>::value) {
     archive.init(array_tag<ValueType>(iterable.size()));
   }
-  for (auto &&x : iterable) {
+  for (auto&& x : iterable) {
     archive.item(std::forward<decltype(x)>(x));
   }
 }
 
-template <typename T0, typename T1>
-class KeyValue {
- public:
-  explicit KeyValue(std::tuple<T0, T1> &&data) : data_(std::move(data)) {}
-  template <typename Archive>
-  void serialize(Archive &archive) {
-    archive.named_value("key", std::forward<T0>(std::get<0>(data_)));
-    archive.named_value("value", std::forward<T1>(std::get<1>(data_)));
-  }
-  std::tuple<T0, T1> &data() { return data_; }
+template <typename T, typename = void>
+struct is_range : std::false_type {};
 
- private:
-  std::tuple<T0, T1> data_;
-};
+template <typename T>
+struct is_range<T, decltype(std::declval<T&>().begin(), std::declval<T&>().end(), void())>
+    : std::true_type {};
 
-template <typename Archive, typename T, typename U = remove_cvref_t<T>,
-          typename KeyType = typename U::key_type, typename MappedType = typename U::mapped_type,
-          std::enable_if_t<!std::is_constructible_v<std::string, KeyType>, int> = 0>
-auto save(Archive &archive, T &object) -> std::void_t<decltype(object.begin(), object.end())> {
-  if constexpr (has_size<T>::value) {
-    // TODO: provide meaningful type info
-    archive.init(array_tag<void>(object.size()));
-  }
-  for (auto &&[k, v] : object) {
-    archive.item(KeyValue{
-        std::forward_as_tuple(std::forward<decltype(k)>(k), std::forward<decltype(v)>(v))});
-  }
-}
+template <typename T>
+inline constexpr bool range = is_range<T>::value;
 
+template <typename T>
+inline constexpr bool disable_sized_range = false;
+
+template <typename T>
+inline constexpr bool sized_range = !disable_sized_range<T> && range<T> && has_size<T>::value;
+
+template <typename T, typename = void>
+struct has_data : std::false_type {};
+
+template <typename T>
+struct has_data<T, decltype(std::declval<T&>().data(), void())> : std::true_type {};
+
+template <typename T>
+inline constexpr bool contiguous_range = range<T> && has_data<T>::value;
+
+//template <typename Archive, typename T, std::enable_if_t<contiguous_range<T>, int> = 0>
+//auto tag_invoke(save_cpo, Archive& archive, T&& range) {
+//  std::copy(((T &&) range).begin(), ((T&&)range).end(), )
+//}
+
+// template <typename T0, typename T1>
+// class KeyValue {
+//  public:
+//   explicit KeyValue(std::tuple<T0, T1>&& data) : data_(std::move(data)) {}
+//   template <typename Archive>
+//   void serialize(Archive& archive) {
+//     archive.named_value("key", std::forward<T0>(std::get<0>(data_)));
+//     archive.named_value("value", std::forward<T1>(std::get<1>(data_)));
+//   }
+//   std::tuple<T0, T1>& data() { return data_; }
+//
+//  private:
+//   std::tuple<T0, T1> data_;
+// };
+
+// template <typename Archive, typename T, typename U = remove_cvref_t<T>,
+//           typename KeyType = typename U::key_type, typename MappedType = typename
+//           U::mapped_type, std::enable_if_t<!std::is_constructible_v<std::string, KeyType>,
+//           int> = 0>
+// auto tag_invoke(save_cpo, Archive& archive, T& object)
+//     -> std::void_t<decltype(object.begin(), object.end())> {
+//   if constexpr (has_size<T>::value) {
+//     // TODO: provide meaningful type info
+//     archive.init(array_tag<void>(object.size()));
+//   }
+//   for (auto&& [k, v] : object) {
+//     archive.item(KeyValue{
+//         std::forward_as_tuple(std::forward<decltype(k)>(k), std::forward<decltype(v)>(v))});
+//   }
+// }
+
+// object -> object archive
 template <typename Archive, typename T, typename U = remove_cvref_t<T>,
           typename KeyType = typename U::key_type, typename MappedType = typename U::mapped_type,
           std::enable_if_t<std::is_constructible_v<std::string, KeyType>, int> = 0>
-auto save(Archive &archive, T &object) -> std::void_t<decltype(object.begin(), object.end())> {
+auto tag_invoke(save_cpo, Archive& archive, T& object)
+    -> std::void_t<decltype(object.begin(), object.end())> {
   if constexpr (has_size<T>::value) {
     archive.init(object_tag<MappedType>());
   }
-  for (auto &&[k, v] : object) {
+  for (auto&& [k, v] : object) {
     archive.named_value(std::forward<decltype(k)>(k), std::forward<decltype(v)>(v));
   }
 }
 
+namespace detail {
+
 template <typename Archive, typename T, std::size_t... Is>
-void save_tuple_impl(Archive &archive, T &&tuple, std::index_sequence<Is...>) {
+void save_tuple_impl(Archive& archive, T&& tuple, std::index_sequence<Is...>) {
   (archive.item(std::get<Is>(std::forward<T>(tuple))), ...);
 }
 
-template <typename Archive, typename... Ts>
-void save(Archive &archive, const std::tuple<Ts...> &tuple) {
-  save_tuple_impl(archive, tuple, std::index_sequence_for<Ts...>{});
-}
-
 template <typename Archive, typename T, size_t... Is>
-void load_tuple_impl(Archive &archive, T &tuple, std::index_sequence<Is...>) {
+void load_tuple_impl(Archive& archive, T& tuple, std::index_sequence<Is...>) {
   (archive.item(std::get<Is>(tuple)), ...);
 }
 
+}  // namespace detail
+
+// tuple -> array archive
+template <typename Archive, typename... Ts>
+void tag_invoke(save_cpo, Archive& archive, const std::tuple<Ts...>& tuple) {
+  detail::save_tuple_impl(archive, tuple, std::index_sequence_for<Ts...>{});
+}
+
+// fixed-size array -> array archive
 template <typename Archive, typename T, std::size_t N>
-void save(Archive &archive, T (&v)[N]) {
+void tag_invoke(save_cpo, Archive& archive, T (&v)[N]) {
   archive.init(array_tag<T>(N));
   for (std::size_t i = 0; i < N; ++i) {
     archive.item(v[i]);
   }
 }
 
+// array archive -> tuple
 template <typename Archive, typename... Ts>
-void load(Archive &archive, std::tuple<Ts...> &tuple) {
+void tag_invoke(load_cpo, Archive& archive, std::tuple<Ts...>& tuple) {
   std::size_t size{};
   archive.init(size);
   if (size != sizeof...(Ts)) {
     throw_exception(eShapeMismatch);
   }
-  load_tuple_impl(archive, tuple, std::index_sequence_for<Ts...>{});
+  detail::load_tuple_impl(archive, tuple, std::index_sequence_for<Ts...>{});
 }
 
+// array archive -> std::vector
 template <typename Archive, typename T, typename U = remove_cvref_t<T>,
           typename ValueType = typename U::value_type,
           std::enable_if_t<!std::is_same_v<U, std::string>, int> = 0>
-auto load(Archive &&archive, T &&vec) -> std::void_t<decltype(vec.push_back(ValueType{}))> {
+auto tag_invoke(load_cpo, Archive&& archive, T&& vec)
+    -> std::void_t<decltype(vec.push_back(ValueType{}))> {
   std::size_t size{};
   archive.init(size);
   vec.clear();
@@ -172,8 +250,9 @@ auto load(Archive &&archive, T &&vec) -> std::void_t<decltype(vec.push_back(Valu
   }
 }
 
+// array archive -> std::array
 template <typename Archive, typename T, std::size_t N>
-void load(Archive &archive, std::array<T, N> &v) {
+void tag_invoke(load_cpo, Archive& archive, std::array<T, N>& v) {
   std::size_t size{};
   archive.init(size);
   for (std::size_t i = 0; i < size; ++i) {
@@ -181,8 +260,9 @@ void load(Archive &archive, std::array<T, N> &v) {
   }
 }
 
+// array archive -> fixed-size array
 template <typename Archive, typename T, std::size_t N>
-void load(Archive &archive, T (&v)[N]) {
+void tag_invoke(load_cpo, Archive& archive, T (&v)[N]) {
   std::size_t size{};
   archive.init(size);
   for (std::size_t i = 0; i < size; ++i) {
@@ -190,12 +270,13 @@ void load(Archive &archive, T (&v)[N]) {
   }
 }
 
+// array archive -> set
 template <typename Archive, typename T, typename U = remove_cvref_t<T>,
           typename ValueType = typename U::value_type,
           std::enable_if_t<std::conjunction_v<std::is_default_constructible<ValueType>,
                                               std::negation<has_mapped_type<U>>>,
                            int> = 0>
-auto load(Archive &&archive, T &&set)
+auto tag_invoke(load_cpo, Archive&& archive, T&& set)
     -> std::void_t<decltype(set.insert(std::declval<ValueType>()))> {
   std::size_t size{};
   archive.init(size);
@@ -206,30 +287,33 @@ auto load(Archive &&archive, T &&set)
   }
 }
 
-template <
-    typename Archive, typename T, typename U = remove_cvref_t<T>,
-    typename KeyType = typename U::key_type, typename MappedType = typename U::mapped_type,
-    std::enable_if_t<std::conjunction_v<std::negation<std::is_constructible<KeyType, std::string>>,
-                                        std::is_default_constructible<KeyType>,
-                                        std::is_default_constructible<MappedType>>,
-                     int> = 0>
-void load(Archive &&archive, T &&object) {
-  std::size_t size{};
-  archive.init(size);
-  for (std::size_t i = 0; i < size; ++i) {
-    KeyType key;
-    MappedType mapped;
-    archive.item(KeyValue{std::tie(key, mapped)});
-    object.insert({std::move(key), std::move(mapped)});
-  };
-}
+// key-value array archive -> map<K, V>
+// template <
+//    typename Archive, typename T, typename U = remove_cvref_t<T>,
+//    typename KeyType = typename U::key_type, typename MappedType = typename U::mapped_type,
+//    std::enable_if_t<std::conjunction_v<std::negation<std::is_constructible<KeyType,
+//    std::string>>,
+//                                        std::is_default_constructible<KeyType>,
+//                                        std::is_default_constructible<MappedType>>,
+//                     int> = 0>
+// void tag_invoke(load_cpo, Archive&& archive, T&& object) {
+//  std::size_t size{};
+//  archive.init(size);
+//  for (std::size_t i = 0; i < size; ++i) {
+//    KeyType key;
+//    MappedType mapped;
+//    archive.item(KeyValue{std::tie(key, mapped)});
+//    object.insert({std::move(key), std::move(mapped)});
+//  };
+//}
 
+// object archive -> map<string, T>
 template <typename Archive, typename T, typename U = remove_cvref_t<T>,
           typename KeyType = typename U::key_type, typename MappedType = typename U::mapped_type,
           std::enable_if_t<std::conjunction_v<std::is_constructible<KeyType, std::string>,
                                               std::is_default_constructible<MappedType>>,
                            int> = 0>
-void load(Archive &&archive, T &&object) {
+void tag_invoke(load_cpo, Archive&& archive, T&& object) {
   std::size_t size{};
   archive.init(size);
   for (std::size_t i = 0; i < size; ++i) {
@@ -240,61 +324,7 @@ void load(Archive &&archive, T &&object) {
   }
 }
 
-struct save_fn {
-  template <typename Archive, typename T>
-  auto operator()(Archive &&a, T &&v) const
-      -> decltype(save(std::forward<Archive>(a), std::forward<T>(v))) {
-    return save(std::forward<Archive>(a), std::forward<T>(v));
-  }
-};
-
-struct load_fn {
-  template <typename Archive, typename T>
-  auto operator()(Archive &&a, T &&v) const
-      -> decltype(load(std::forward<Archive>(a), std::forward<T>(v))) {
-    return load(std::forward<Archive>(a), std::forward<T>(v));
-  }
-};
-
-struct serialize_fn {
-  template <typename Archive, typename T>
-  auto operator()(Archive &&a, T &&v) const
-      -> decltype(serialize(std::forward<Archive>(a), std::forward<T>(v))) {
-    return serialize(std::forward<Archive>(a), std::forward<T>(v));
-  }
-};
-
-}  // namespace detail
-
-namespace {
-
-constexpr inline detail::save_fn save{};
-constexpr inline detail::load_fn load{};
-constexpr inline detail::serialize_fn serialize{};
-
-}  // namespace
-
-template <typename T = void, typename SFINAE = void>
-struct adl_serializer;
-
-template <typename, typename>
-struct adl_serializer {
-  template <typename Archive, typename T>
-  static auto save(Archive &&a, T &&v)
-      -> decltype(::mmdeploy::save(std::forward<Archive>(a), std::forward<T>(v))) {
-    ::mmdeploy::save(std::forward<Archive>(a), std::forward<T>(v));
-  }
-  template <typename Archive, typename T>
-  static auto load(Archive &&a, T &&v)
-      -> decltype(::mmdeploy::load(std::forward<Archive>(a), std::forward<T>(v))) {
-    ::mmdeploy::load(std::forward<Archive>(a), std::forward<T>(v));
-  }
-  template <typename Archive, typename T>
-  static auto serialize(Archive &&a, T &&v)
-      -> decltype(::mmdeploy::serialize(std::forward<Archive>(a), std::forward<T>(v))) {
-    ::mmdeploy::serialize(std::forward<Archive>(a), std::forward<T>(v));
-  }
-};
+}  // namespace serialization
 
 };  // namespace mmdeploy
 

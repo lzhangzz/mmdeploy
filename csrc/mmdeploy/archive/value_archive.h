@@ -17,12 +17,12 @@ class ValueOutputArchive : public OutputArchive<ValueOutputArchive> {
   explicit ValueOutputArchive(Value& data) : data_(data) {}
 
   template <typename T>
-  void init(array_tag<T>) {
+  void init(serialization::array_tag<T>) {
     data_ = ValueType::kArray;
   }
 
   template <typename T>
-  void init(object_tag<T>) {
+  void init(serialization::object_tag<T>) {
     data_ = ValueType::kObject;
   }
 
@@ -68,12 +68,14 @@ class ValueInputArchive : public InputArchive<ValueInputArchive> {
  public:
   explicit ValueInputArchive(const Value& data) : data_(data) {}
 
+  // get size & initialize internal interator
   template <typename SizeType>
   void init(SizeType& size) {
     size = static_cast<SizeType>(data_.size());
     iter_ = data_.begin();
   }
 
+  // load name & value from archive, used by map<string, T>
   template <typename T>
   void named_value(std::string& name, T& val) {
     name = iter_.key();
@@ -81,17 +83,20 @@ class ValueInputArchive : public InputArchive<ValueInputArchive> {
     ++iter_;
   }
 
+  // load value by name, used by structs
   template <typename T>
   void named_value(const std::string& name, T&& val) {
     from_value(data_[name], std::forward<T>(val));
   }
 
+  // load next item
   template <typename T>
   void item(T&& val) {
     from_value(*iter_, std::forward<T>(val));
     ++iter_;
   }
 
+  // load native item
   template <typename T>
   void native(T&& val) {
     data_.get_to(val);
@@ -121,16 +126,16 @@ inline T from_value(const Value& value) {
   return x;
 }
 
-namespace detail {
+namespace serialization {
 
-inline void load(ValueInputArchive& archive, Value& v) { archive.native(v); }
+inline void tag_invoke(load_cpo, ValueInputArchive& archive, Value& v) { archive.native(v); }
 
 template <class T, std::enable_if_t<std::is_same<std::decay_t<T>, Value>::value, bool> = true>
-inline void save(ValueOutputArchive& archive, T&& v) {
+inline void tag_invoke(save_cpo, ValueOutputArchive& archive, T&& v) {
   archive.native(std::forward<T>(v));
 }
 
-}  // namespace detail
+}  // namespace serialization
 
 }  // namespace mmdeploy
 
