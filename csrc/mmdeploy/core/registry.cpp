@@ -19,6 +19,7 @@ struct Registry<void>::Impl {
   }
 
   Creator<void>* Get(const string_view& name, int version) {
+    fprintf(stderr, "Retrieving %s from %p\n", std::string(name).c_str(), this);
     const auto& [u, v] = std::equal_range(names_.begin(), names_.end(), name);
     const auto& [i, j] = convert(u, v);
     if (version == -1) {
@@ -36,6 +37,7 @@ struct Registry<void>::Impl {
   }
 
   bool Add(Creator<void>& creator) {
+    fprintf(stderr, "Registering %s to %p\n", std::string(creator.name()).c_str(), this);
     const auto& [u, v] = std::equal_range(names_.begin(), names_.end(), creator.name());
     const auto& [i, j] = convert(u, v);
     if (i != j) {

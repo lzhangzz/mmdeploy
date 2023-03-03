@@ -326,7 +326,21 @@ Result<Value> NetModule::operator()(const Value& input) {
   }
 }
 
+MMDEPLOY_DEFINE_REGISTRY(Net);
+
 MMDEPLOY_REGISTER_FACTORY_FUNC(Module, (Net, 0),
                                [](const Value& config) { return CreateTask(NetModule{config}); });
 
 }  // namespace mmdeploy::framework
+
+extern "C" {
+MMDEPLOY_EXPORT void mmdeploy_test_log() {
+  MMDEPLOY_ERROR("non-default log");
+}
+}
+
+//extern "C" {
+//MMDEPLOY_EXPORT void* mmdeploy_net_registry() {
+//  return &mmdeploy::gRegistry<mmdeploy::framework::Net>();
+//}
+//}

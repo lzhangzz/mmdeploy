@@ -68,10 +68,13 @@ Buffer::Buffer(Device device, size_t size, Allocator allocator, size_t alignment
   if (auto p = GetPlatformImpl(device)) {
     impl_ = p->CreateBuffer(device);
     if (auto r = impl_->Init(size, std::move(allocator), alignment, flags); r.has_error()) {
+      MMDEPLOY_ERROR("");
       impl_.reset();
       r.error().throw_exception();
     }
+    MMDEPLOY_ERROR("");
   } else {
+    MMDEPLOY_ERROR("");
     throw_exception(eInvalidArgument);
   }
 }
@@ -324,6 +327,7 @@ int PlatformRegistry::Register(Creator creator) {
   } else if (!IsAvailable(proposed_id)) {
     return -1;
   }
+  MMDEPLOY_ERROR("registering device: {}, {}", name, (void*)this);
   entries_.push_back({name, proposed_id, platform});
   return 0;
 }

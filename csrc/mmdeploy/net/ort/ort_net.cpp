@@ -2,12 +2,25 @@
 
 #include "ort_net.h"
 
+#include <Windows.h>
+
 #include <algorithm>
 
 #include "mmdeploy/core/logger.h"
 #include "mmdeploy/core/model.h"
 #include "mmdeploy/core/utils/formatter.h"
+#include "mmdeploy/net/net_module.h"
 #include "onnxruntime_register.h"
+
+extern "C" {
+void default_mmdeploy_test_log() { MMDEPLOY_ERROR("default log"); }
+
+void mmdeploy_test_log();
+}
+
+//#pragma comment(linker, "/alternatename:_mmdeploy_test_log=_default_mmdeploy_test_log")
+#pragma comment(linker, "/ALTERNATENAME:mmdeploy_test_log=default_mmdeploy_test_log")
+
 
 namespace mmdeploy::framework {
 
@@ -37,22 +50,24 @@ static Result<DataType> ConvertElementType(ONNXTensorElementDataType type) {
 
 // TODO: handle datatype
 Result<void> OrtNet::Init(const Value& args) {
+  mmdeploy_test_log();
+  MMDEPLOY_ERROR("");
   auto& context = args["context"];
   device_ = context["device"].get<Device>();
   stream_ = context["stream"].get<Stream>();
-
+  MMDEPLOY_ERROR("");
   auto name = args["name"].get<std::string>();
   auto model = context["model"].get<Model>();
-
+  MMDEPLOY_ERROR("");
   OUTCOME_TRY(auto config, model.GetModelConfig(name));
-
+  MMDEPLOY_ERROR("");
   OUTCOME_TRY(auto onnx, model.ReadFile(config.net));
-
+  MMDEPLOY_ERROR("");
   Ort::SessionOptions options;
   options.SetLogSeverityLevel(3);
 
   RegisterCustomOps(options, OrtGetApiBase());
-
+  MMDEPLOY_ERROR("");
   if (device_.is_device()) {
     OrtCUDAProviderOptions cuda_options{};
     cuda_options.device_id = device_.device_id();
@@ -60,35 +75,45 @@ Result<void> OrtNet::Init(const Value& args) {
     options.AppendExecutionProvider_CUDA(cuda_options);
   }
   session_ = {env_, onnx.data(), onnx.size(), options};
-
+  MMDEPLOY_ERROR("");
   auto memory_info = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
   Ort::Allocator allocator(session_, memory_info);
-
+  MMDEPLOY_ERROR("");
   auto n_inputs = session_.GetInputCount();
-
+  MMDEPLOY_ERROR("");
   // force negative shape to be empty
   auto filter_shape = [](TensorShape& shape) {
     if (std::any_of(begin(shape), end(shape), [](auto x) { return x < 0; })) {
       shape = {};
     }
   };
-
+  MMDEPLOY_ERROR("");
   for (int i = 0; i < n_inputs; ++i) {
 #if ORT_API_VERSION >= 13
     auto input_name = session_.GetInputNameAllocated(i, allocator).release();
 #else
     auto input_name = session_.GetInputName(i, allocator);
 #endif
+    MMDEPLOY_ERROR("");
     auto type_info = session_.GetInputTypeInfo(i);
     auto shape = to_shape(type_info);
-    MMDEPLOY_DEBUG("input {}, shape = {}", i, shape);
+    MMDEPLOY_ERROR("input {}, shape = {}", i, shape);
     filter_shape(shape);
+    MMDEPLOY_ERROR("");
     OUTCOME_TRY(auto data_type,
                 ConvertElementType(type_info.GetTensorTypeAndShapeInfo().GetElementType()));
-    input_tensors_.emplace_back(TensorDesc{device_, data_type, shape, input_name});
+    MMDEPLOY_ERROR("");
+    TensorDesc t_desc{device_, data_type, shape, input_name};
+    MMDEPLOY_ERROR("platform registry: {}", (void*)&gPlatformRegistry());
+    MMDEPLOY_ERROR("({}, {}) {} {} {}", device_.platform_id(), device_.device_id(), data_type,
+                   shape, input_name);
+    Tensor t(t_desc);
+    MMDEPLOY_ERROR("");
+    input_tensors_.emplace_back(t);
+    MMDEPLOY_ERROR("");
     allocator.Free(input_name);
   }
-
+  MMDEPLOY_ERROR("");
   auto n_outputs = session_.GetOutputCount();
 
   for (int i = 0; i < n_outputs; ++i) {
@@ -106,7 +131,7 @@ Result<void> OrtNet::Init(const Value& args) {
     output_tensors_.emplace_back(TensorDesc{device_, data_type, shape, output_name});
     allocator.Free(output_name);
   }
-
+  MMDEPLOY_ERROR("");
   return success();
 }
 
@@ -195,12 +220,37 @@ static std::unique_ptr<Net> Create(const Value& args) {
       MMDEPLOY_ERROR("error creating OrtNet: {}", r.error().message().c_str());
       return nullptr;
     }
+  } catch (const Exception& e) {
+    MMDEPLOY_ERROR("unhandled exception when creating ORTNet: {}", e.what());
+    return nullptr;
   } catch (const std::exception& e) {
     MMDEPLOY_ERROR("unhandled exception when creating ORTNet: {}", e.what());
     return nullptr;
   }
 }
 
-MMDEPLOY_REGISTER_FACTORY_FUNC(Net, (onnxruntime, 0), Create);
+// MMDEPLOY_REGISTER_FACTORY_FUNC(Net, (onnxruntime, 0), Create);
+
+typedef void* (*get_net_registry_t)();
+
+// static ::mmdeploy::Registerer register_onnx{
+//     [creator = ::mmdeploy::SimpleCreator<Net>("onnxruntime", 0, Create)]() mutable {
+//       auto handle = GetModuleHandle("mmdeploy_python.pyd");
+//       fprintf(stderr, "handle = %p\n", handle);
+//       auto proc = (get_net_registry_t)GetProcAddress(handle, "mmdeploy_net_registry");
+//       fprintf(stderr, "proc = %p\n", proc);
+//       auto& registry = *(Registry<Net>*)proc();
+//       fprintf(stderr, "registry = %p\n", &registry);
+//       registry.Add(creator);
+//     }};
 
 }  // namespace mmdeploy::framework
+
+extern "C" {
+MMDEPLOY_EXPORT int init(void* registry) {
+  static mmdeploy::SimpleCreator<mmdeploy::framework::Net> creator("onnxruntime", 0,
+                                                                   mmdeploy::framework::Create);
+  static_cast<mmdeploy::Registry<mmdeploy::framework::Net>*>(registry)->Add(creator);
+  return 0;
+}
+}

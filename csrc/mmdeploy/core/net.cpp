@@ -6,6 +6,5 @@
 
 namespace mmdeploy::framework {
 
-MMDEPLOY_DEFINE_REGISTRY(Net);
 
 }  // namespace mmdeploy::framework

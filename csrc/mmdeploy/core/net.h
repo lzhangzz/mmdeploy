@@ -22,8 +22,6 @@ class Net {
   virtual Result<void> ForwardAsync(Event* event) = 0;
 };
 
-MMDEPLOY_DECLARE_REGISTRY(Net, std::unique_ptr<Net>(const Value& config));
-
 }  // namespace mmdeploy::framework
 
 #endif  // MMDEPLOY_SRC_CORE_NET_H_

@@ -2,9 +2,11 @@
 
 #include <string>
 #include <cstdio>
+#include <iostream>
 
 #ifdef _WIN32
 #include <Windows.h>
+#include <Errhandlingapi.h>
 #else
 #include <dlfcn.h>
 #endif
@@ -28,6 +30,10 @@ void* mmdeploy_load_library(const char* name) {
 
 #ifdef _WIN32
   auto handle = LoadLibraryExA(name, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+  if (!handle) {
+    auto ec = GetLastError();
+    std::cerr << "error code: " << ec << std::endl;
+  }
 #else
   auto handle = dlopen(name, RTLD_NOW | RTLD_GLOBAL);
 #endif
@@ -35,6 +41,10 @@ void* mmdeploy_load_library(const char* name) {
   if (!handle) {
     fprintf(stderr, "failed to load library %s\n", name);
     return nullptr;
+  } else {
+    typedef int (*Init)(void*);
+    auto init = (Init)GetProcAddress(handle, "init");
+    init(&mmdeploy::gRegistry<mmdeploy::framework::Net>());
   }
   return handle;
 }
