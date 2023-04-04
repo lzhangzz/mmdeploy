@@ -8,6 +8,7 @@
 #include "mmdeploy/core/model.h"
 #include "mmdeploy/core/module.h"
 #include "mmdeploy/core/utils/formatter.h"
+#include "mmdeploy/device/cuda/cuda_device.h"
 
 namespace mmdeploy::framework {
 
@@ -102,10 +103,14 @@ Result<void> TRTNet::Init(const Value& args) {
 
   auto& context = args["context"];
   device_ = context["device"].get<Device>();
+
   if (device_.is_host()) {
     MMDEPLOY_ERROR("TRTNet: device must be a GPU!");
     return Status(eNotSupported);
   }
+
+  CudaDeviceGuard guard(device_);
+
   stream_ = context["stream"].get<Stream>();
 
   event_ = Event(device_);
@@ -190,6 +195,7 @@ Result<Span<Tensor>> TRTNet::GetInputTensors() { return input_tensors_; }
 Result<Span<Tensor>> TRTNet::GetOutputTensors() { return output_tensors_; }
 
 Result<void> TRTNet::Forward() {
+  CudaDeviceGuard guard(device_);
   using namespace trt_detail;
   std::vector<void*> bindings(engine_->getNbBindings());
 
